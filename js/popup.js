@@ -5,74 +5,259 @@ const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 const sourceText = document.getElementById('sourceText');
 const sourceLanguage = document.getElementById('sourceLanguage');
 const targetLanguage = document.getElementById('targetLanguage');
-const providerRadios = document.getElementsByName('provider');
+const swapLanguagesButton = document.getElementById('swapLanguagesButton'); // Новая кнопка
+const deepseekButton = document.getElementById('deepseekButton'); // Новая кнопка
+const openrouterButton = document.getElementById('openrouterButton'); // Новая кнопка
+const providerButtons = [deepseekButton, openrouterButton]; // Массив кнопок провайдеров
 const openrouterModelContainer = document.getElementById('openrouterModelContainer');
-// const openrouterModel = document.getElementById('openrouterModel'); // Удалено, будет заменено openrouterModelInput
 const translateButton = document.getElementById('translateButton');
 const translatedText = document.getElementById('translatedText');
 const copyButton = document.getElementById('copyButton');
-const loadingIndicator = document.querySelector('.loading-indicator');
+const loadingIndicator = document.querySelector('.loading-indicator'); // Убедимся, что класс .loading-indicator еще используется или обновим
+const settingsButton = document.getElementById('settingsButton'); // Новая кнопка настроек
 
 // Новые элементы для управления моделями OpenRouter
 const openrouterModelInput = document.getElementById('openrouterModelInput');
 const openrouterModelDropdown = document.getElementById('openrouterModelDropdown');
-const openrouterModelDropdownArrow = document.getElementById('openrouterModelDropdownArrow'); // Элемент стрелки
+const openrouterModelDropdownArrow = document.getElementById('openrouterModelDropdownArrow'); 
 let openRouterModels = [];
 let selectedOpenRouterModel = '';
+let currentProvider = 'deepseek'; // Провайдер по умолчанию
 
 // Загрузка настроек и моделей при открытии popup
 document.addEventListener('DOMContentLoaded', async () => {
     const data = await browserAPI.storage.local.get([
         'defaultProvider',
-        // 'defaultModel', // Загрузка defaultModel будет обработана ниже, если провайдер OpenRouter
         'defaultTargetLanguage',
         'openRouterModels',
-        'selectedOpenRouterModel'
+        'selectedOpenRouterModel',
+        'sourceLanguage',
+        'targetLanguage' // Загружаем сохраненные языки
     ]);
 
-    // Устанавливаем значения по умолчанию
+    // Устанавливаем значения по умолчанию для провайдера
     if (data.defaultProvider) {
-        const radio = document.querySelector(`input[name="provider"][value="${data.defaultProvider}"]`);
-        if (radio) radio.checked = true;
-        updateProviderUI(data.defaultProvider);
-    } else {
-        // Если провайдер по умолчанию не задан, выбираем первый (DeepSeek)
-        providerRadios[0].checked = true;
-        updateProviderUI(providerRadios[0].value);
-    }
+        currentProvider = data.defaultProvider;
+    } // currentProvider уже 'deepseek' по умолчанию
+    updateProviderUI(currentProvider);
+    setActiveProviderButton(currentProvider);
 
     if (data.openRouterModels) {
         openRouterModels = data.openRouterModels;
     }
     if (data.selectedOpenRouterModel) {
         selectedOpenRouterModel = data.selectedOpenRouterModel;
-        openrouterModelInput.value = selectedOpenRouterModel; // Отображаем выбранную модель в input
+        openrouterModelInput.value = selectedOpenRouterModel; 
     } else if (openRouterModels.length > 0) {
-        // Если выбранной модели нет, но есть сохраненные, выбираем первую
         selectedOpenRouterModel = openRouterModels[0];
         openrouterModelInput.value = selectedOpenRouterModel;
     }
 
-
-    if (data.defaultTargetLanguage) {
+    if (data.sourceLanguage) { // Загружаем сохраненный исходный язык
+        sourceLanguage.value = data.sourceLanguage;
+    }
+    if (data.defaultTargetLanguage) { // Используем defaultTargetLanguage для целевого языка
         targetLanguage.value = data.defaultTargetLanguage;
     }
+    // Если в хранилище есть targetLanguage (старое название), используем его, если нет defaultTargetLanguage
+    else if (data.targetLanguage) {
+        targetLanguage.value = data.targetLanguage;
+    }
+
 
     renderOpenRouterModels();
 });
 
 // Обработчик изменения провайдера
-providerRadios.forEach(radio => {
-    radio.addEventListener('change', (e) => {
-        updateProviderUI(e.target.value);
-        browserAPI.storage.local.set({ defaultProvider: e.target.value });
+providerButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const provider = button.dataset.provider;
+        currentProvider = provider;
+        updateProviderUI(provider);
+        setActiveProviderButton(provider);
+        browserAPI.storage.local.set({ defaultProvider: provider });
     });
 });
+
+function setActiveProviderButton(provider) {
+    providerButtons.forEach(btn => {
+        if (btn.dataset.provider === provider) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
 
 // Обновление UI в зависимости от выбранного провайдера
 function updateProviderUI(provider) {
     openrouterModelContainer.style.display = provider === 'openrouter' ? 'block' : 'none';
 }
+
+// Сохранение выбранных языков
+sourceLanguage.addEventListener('change', () => {
+    browserAPI.storage.local.set({ sourceLanguage: sourceLanguage.value });
+});
+
+targetLanguage.addEventListener('change', () => {
+    browserAPI.storage.local.set({ defaultTargetLanguage: targetLanguage.value });
+});
+
+// Обработчик для кнопки смены языков
+swapLanguagesButton.addEventListener('click', () => {
+    const sourceLangValue = sourceLanguage.value;
+    const targetLangValue = targetLanguage.value;
+
+    if (sourceLangValue === 'auto') { // Нельзя поменять "Автоопределение" на целевой
+        // Можно добавить уведомление пользователю
+        console.warn("Cannot swap 'auto' with target language. Please select a specific source language first.");
+        return;
+    }
+
+    sourceLanguage.value = targetLangValue;
+    targetLanguage.value = sourceLangValue;
+
+    // Сохраняем изменения в хранилище
+    browserAPI.storage.local.set({
+        sourceLanguage: sourceLanguage.value,
+        defaultTargetLanguage: targetLanguage.value
+    });
+});
+
+// Заменяем обработчик для кнопки настроек
+settingsButton.addEventListener('click', () => {
+    // Открываем модальное окно настроек
+    // Проверяем существует ли уже модальное окно
+    let settingsModal = document.getElementById('settingsModal');
+    
+    if (!settingsModal) {
+        // Создаем модальное окно, если его нет
+        settingsModal = document.createElement('div');
+        settingsModal.id = 'settingsModal';
+        settingsModal.className = 'modal';
+        
+        // Добавляем содержимое модального окна
+        settingsModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Настройки</h2>
+                    <button class="close-button">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Настройки будут добавлены здесь -->
+                    <div class="settings-section">
+                        <h3>Основные настройки</h3>
+                        <div class="settings-option">
+                            <label for="defaultTargetLanguage">Язык перевода по умолчанию:</label>
+                            <select id="defaultTargetLanguage">
+                                <option value="ru">Русский</option>
+                                <option value="en">Английский</option>
+                                <!-- Другие языки -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h3>API настройки</h3>
+                        <div class="settings-option">
+                            <label for="deepseekApiKey">DeepSeek API ключ:</label>
+                            <input type="password" id="deepseekApiKey" placeholder="Введите API ключ">
+                        </div>
+                        <div class="settings-option">
+                            <label for="openrouterApiKey">OpenRouter API ключ:</label>
+                            <input type="password" id="openrouterApiKey" placeholder="Введите API ключ">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="saveSettingsButton" class="save-button">Сохранить</button>
+                </div>
+            </div>
+        `;
+        
+        // Добавляем модальное окно в DOM
+        document.body.appendChild(settingsModal);
+        
+        // Обработчик для закрытия модального окна
+        const closeButton = settingsModal.querySelector('.close-button');
+        closeButton.addEventListener('click', () => {
+            settingsModal.style.display = 'none';
+        });
+        
+        // Обработчик для сохранения настроек
+        const saveSettingsButton = settingsModal.querySelector('#saveSettingsButton');
+        saveSettingsButton.addEventListener('click', async () => {
+            // Получаем значения полей
+            const defaultTargetLanguage = settingsModal.querySelector('#defaultTargetLanguage').value;
+            const deepseekApiKey = settingsModal.querySelector('#deepseekApiKey').value;
+            const openrouterApiKey = settingsModal.querySelector('#openrouterApiKey').value;
+            
+            // Сохраняем в хранилище
+            await browserAPI.storage.local.set({
+                defaultTargetLanguage,
+                deepseekApiKey,
+                openrouterApiKey
+            });
+            
+            // Закрываем модальное окно после сохранения
+            settingsModal.style.display = 'none';
+            
+            // Обновляем значения в UI, если необходимо
+            if (defaultTargetLanguage) {
+                targetLanguage.value = defaultTargetLanguage;
+            }
+        });
+        
+        // Загружаем сохраненные настройки в модальное окно
+        (async () => {
+            const data = await browserAPI.storage.local.get([
+                'defaultTargetLanguage',
+                'deepseekApiKey',
+                'openrouterApiKey'
+            ]);
+            
+            if (data.defaultTargetLanguage) {
+                settingsModal.querySelector('#defaultTargetLanguage').value = data.defaultTargetLanguage;
+            }
+            if (data.deepseekApiKey) {
+                settingsModal.querySelector('#deepseekApiKey').value = data.deepseekApiKey;
+            }
+            if (data.openrouterApiKey) {
+                settingsModal.querySelector('#openrouterApiKey').value = data.openrouterApiKey;
+            }
+        })();
+    } else {
+        // Модальное окно уже существует, просто показываем его
+        // Обновляем сохраненные настройки перед показом
+        (async () => {
+            const data = await browserAPI.storage.local.get([
+                'defaultTargetLanguage',
+                'deepseekApiKey',
+                'openrouterApiKey'
+            ]);
+            
+            if (data.defaultTargetLanguage) {
+                settingsModal.querySelector('#defaultTargetLanguage').value = data.defaultTargetLanguage;
+            }
+            if (data.deepseekApiKey) {
+                settingsModal.querySelector('#deepseekApiKey').value = data.deepseekApiKey;
+            }
+            if (data.openrouterApiKey) {
+                settingsModal.querySelector('#openrouterApiKey').value = data.openrouterApiKey;
+            }
+        })();
+    }
+    
+    // Показываем модальное окно
+    settingsModal.style.display = 'block';
+});
+
+// Закрытие модального окна при клике вне его
+document.addEventListener('click', (event) => {
+    const settingsModal = document.getElementById('settingsModal');
+    if (settingsModal && event.target === settingsModal) {
+        settingsModal.style.display = 'none';
+    }
+});
 
 // --- Логика управления моделями OpenRouter ---
 
@@ -225,69 +410,70 @@ openrouterModelInput.addEventListener('input', async () => {
 
 // --- Конец логики управления моделями OpenRouter ---
 
-// Обработчик кнопки перевода
-translateButton.addEventListener('click', async () => {
+// --- Логика перевода (адаптируем получение провайдера) ---
+async function translate() {
     const text = sourceText.value.trim();
     if (!text) return;
 
-    const sourceLang = sourceLanguage.value;
-    const targetLang = targetLanguage.value;
-    const currentProvider = document.querySelector('input[name="provider"]:checked').value;
-    
-    let modelToUse = '';
-    if (currentProvider === 'openrouter') {
-        modelToUse = selectedOpenRouterModel; // Используем выбранную модель
-        if (!modelToUse) {
-            alert("Пожалуйста, выберите или добавьте модель OpenRouter.");
+    let provider = currentProvider; // Используем currentProvider
+    let model = '';
+
+    if (provider === 'openrouter') {
+        model = selectedOpenRouterModel;
+        if (!model) {
+            alert('Пожалуйста, выберите или введите модель OpenRouter.');
             return;
         }
-    } else if (currentProvider === 'deepseek') {
-        // Для DeepSeek модель не указывается явно в popup, а берется из настроек background-скрипта
-        // или передается как null/undefined, чтобы background использовал дефолтную для DeepSeek
-        modelToUse = null; 
     }
 
-
-    // Показываем индикатор загрузки
     loadingIndicator.style.display = 'flex';
-    translateButton.disabled = true;
+    translatedText.value = '';
 
     try {
         const response = await browserAPI.runtime.sendMessage({
             action: 'translate',
-            text,
-            sourceLang,
-            targetLang,
-            provider: currentProvider,
-            model: modelToUse
+            text: text,
+            sourceLang: sourceLanguage.value,
+            targetLang: targetLanguage.value,
+            provider: provider,
+            model: model
         });
 
-        if (response && response.success) {
-            translatedText.value = response.translatedText;
+        if (response.error) {
+            translatedText.value = `Ошибка: ${response.error}`;
+            console.error('Translation error:', response.errorDetails);
         } else {
-            throw new Error(response ? response.error : 'Неизвестная ошибка');
+            translatedText.value = response.translation;
         }
-    } catch (error) {
-        console.error('Error during translation:', error);
-        translatedText.value = `Ошибка: ${error.message}`;
-    } finally {
-        // Скрываем индикатор загрузки
-        loadingIndicator.style.display = 'none';
-        translateButton.disabled = false;
+    } catch (err) {
+        console.error('Error sending message to background:', err);
+        translatedText.value = `Ошибка связи с фоновым скриптом: ${err.message}`;
     }
-});
 
-// Обработчик кнопки копирования
+    loadingIndicator.style.display = 'none';
+}
+
+translateButton.addEventListener('click', translate);
+
+// --- Логика копирования (проверяем, что работает как ожидается) ---
 copyButton.addEventListener('click', () => {
-    translatedText.select();
-    document.execCommand('copy');
-    
-    // Визуальная обратная связь
-    const originalText = copyButton.textContent;
-    copyButton.textContent = 'Скопировано!';
-    setTimeout(() => {
-        copyButton.textContent = originalText;
-    }, 2000);
+    if (translatedText.value) {
+        navigator.clipboard.writeText(translatedText.value)
+            .then(() => {
+                // Можно добавить визуальную обратную связь (например, текст "Скопировано!")
+                console.log('Перевод скопирован в буфер обмена');
+                 // Просто для примера, можно сделать более заметное уведомление
+                const originalButtonContent = copyButton.innerHTML;
+                copyButton.innerHTML = '<img src="../icons/check-icon.svg" alt="Copied">'; // Предполагаем, что есть check-icon.svg
+                setTimeout(() => {
+                    copyButton.innerHTML = originalButtonContent;
+                }, 1500);
+            })
+            .catch(err => {
+                console.error('Ошибка копирования:', err);
+                alert('Не удалось скопировать текст.');
+            });
+    }
 });
 
 // Сохранение настроек при изменении
@@ -305,4 +491,5 @@ targetLanguage.addEventListener('change', async () => {
 // radio.addEventListener('change', async (e) => {
 // await browserAPI.storage.local.set({ defaultProvider: e.target.value });
 // });
+// }); 
 // }); 

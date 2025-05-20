@@ -1,44 +1,46 @@
 body {
-    width: 400px;
+    width: 375px; /* Ширина макета */
     margin: 0;
-    padding: 16px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    padding: 15px; /* Уменьшаем общие отступы */
+    font-family: 'Inter', sans-serif; /* Предполагаемый шрифт, если есть - указать */
+    background-color: #2C2C3A; /* Темный фон */
+    color: #FFFFFF; /* Белый текст по умолчанию */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .container {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px; /* Уменьшаем отступы между основными блоками */
 }
 
 .header {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between; /* Лого слева, кнопка настроек справа */
     align-items: center;
-    gap: 4px;
-    position: relative;
+    width: 100%;
+    margin-bottom: 5px; /* Уменьшаем отступ под заголовком */
 }
 
 .logo {
-    height: 150px;
-    width: 150px;
-    display: block;
-    margin: 0 auto;
-    object-fit: contain;
+    height: 120px; /* Значительно увеличиваем высоту логотипа */
+    width: auto; /* Автоматическая ширина для сохранения пропорций */
+    margin: 0; /* Убираем вертикальные отступы у самого лого, чтобы header не растягивался ими */
 }
 
-.header h1 {
-    margin: 0;
-    font-size: 1.5em;
-    color: #333;
+.settings-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
 }
 
-.settings-link {
-    text-decoration: none;
-    font-size: 1.2em;
-    position: absolute;
-    right: 0;
-    top: 0;
+.settings-button img {
+    width: 24px; /* Размер иконки настроек */
+    height: 24px;
 }
 
 .translation-container {
@@ -55,50 +57,207 @@ body {
 
 textarea {
     width: 100%;
-    min-height: 100px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: vertical;
+    min-height: 100px; /* Уменьшаем минимальную высоту текстовых полей */
+    padding: 10px;
+    border: 1px solid #4A4A5A; /* Цвет рамки */
+    border-radius: 8px; /* Скругление углов */
+    background-color: #3B3B4D; /* Фон текстовых полей */
+    color: #FFFFFF; /* Цвет текста */
     font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box; /* Чтобы padding не увеличивал общую ширину */
+    font-size: 14px; /* Немного уменьшим шрифт в текстовых полях */
 }
 
-.language-selectors {
+textarea::placeholder {
+    color: #8A8A9A; /* Цвет плейсхолдера */
+}
+
+textarea:focus {
+    outline: none; /* Убираем стандартное выделение */
+    border: 1px solid transparent; /* Прозрачная граница для градиента */
+    background-clip: padding-box; /* Градиент не заходит на внутренний контент */
+    background-origin: border-box;
+    box-shadow: 0 0 0 1px transparent; /* Создаем место для градиента */
+    position: relative;
+}
+
+textarea:focus::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: linear-gradient(90deg, #6B73FF 0%, #C76BFF 100%) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Для текстовых полей ввода добавляем градиентную рамку при фокусе */
+textarea:focus, 
+#openrouterModelInput:focus {
+    border-color: transparent;
+    box-shadow: 0 0 0 1px #6B73FF, 0 0 0 1px #C76BFF;
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-image: linear-gradient(#3B3B4D, #3B3B4D), 
+                      linear-gradient(90deg, #6B73FF 0%, #C76BFF 100%);
+}
+
+/* Для выпадающего списка и поля выбора модели */
+#openrouterModelInput {
+    color: #FFFFFF;
+}
+
+#openrouterModelInput:focus {
+    outline: none;
+}
+
+.output-container {
+    position: relative;
+    margin-bottom: 5px; /* Добавляем небольшой отступ снизу */
+}
+
+.copy-button {
+    position: absolute;
+    top: 12px; /* Отступ кнопки копирования */
+    right: 12px; /* Отступ кнопки копирования */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.copy-button img {
+    width: 20px; /* Размер иконки копирования */
+    height: 20px;
+}
+
+.language-controls {
     display: flex;
-    gap: 8px;
+    width: 100%;
+    align-items: center;
+    gap: 8px; /* Уменьшаем отступ между элементами */
+    margin: 0 0 5px 0; /* Убираем верхний отступ, уменьшаем нижний */
 }
 
-select {
-    flex: 1;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: white;
+.language-select-wrapper {
+    flex: 1; /* Изменяем на flex: 1 вместо flex-grow */
+    position: relative;
 }
 
-.provider-section {
+.language-select-wrapper select {
+    width: 100%;
+    padding: 10px 30px 10px 12px; /* Уменьшаем отступы */
+    border: 1px solid #4A4A5A;
+    border-radius: 8px;
+    background-color: #3B3B4D;
+    color: #FFFFFF;
+    font-family: inherit;
+    appearance: none; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    height: 40px; /* Уменьшаем высоту селектов */
+    font-size: 14px; /* Уменьшаем шрифт */
+}
+
+/* Кастомная стрелка для селектов */
+.language-select-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 12px; /* Поправляем положение стрелки */
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #8A8A9A;
+    pointer-events: none;
+}
+
+.swap-button {
+    background: none;
+    border: 1px solid #4A4A5A; 
+    border-radius: 8px; 
+    padding: 0;
+    cursor: pointer;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 8px;
-    border: 1px solid #eee;
-    border-radius: 4px;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px; 
+    width: 40px;  
+    height: 40px; 
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.swap-button img {
+    width: 20px; 
+    height: 20px;
 }
 
 .provider-selector {
     display: flex;
-    gap: 16px;
+    gap: 8px; /* Уменьшаем отступ */
+    margin-bottom: 5px; /* Добавляем небольшой отступ снизу */
 }
 
-.provider-selector label {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+.provider-button {
+    flex-grow: 1; /* Чтобы кнопки занимали равное пространство */
+    padding: 10px; /* Уменьшаем паддинг */
+    border: 1px solid #4A4A5A;
+    border-radius: 8px;
+    background-color: #3B3B4D;
+    color: #8A8A9A; /* Неактивный цвет текста */
+    font-family: inherit;
+    font-size: 13px; /* Уменьшаем шрифт */
     cursor: pointer;
+    text-align: center;
+}
+
+.provider-button.active {
+    background-color: #4A4A5A; /* Активный цвет фона */
+    color: #FFFFFF; /* Активный цвет текста */
+    border-color: #5D5D6F; /* Акцентная рамка */
+}
+
+.translate-button {
+    padding: 12px; /* Уменьшаем паддинг */
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #6B73FF 0%, #C76BFF 100%); /* Градиент */
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 15px; /* Уменьшаем шрифт */
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    width: 100%; /* На всю ширину */
+    box-sizing: border-box;
+    margin-bottom: 5px; /* Добавляем небольшой отступ снизу */
+}
+
+footer {
+    text-align: center;
+    font-size: 11px; /* Уменьшаем шрифт */
+    color: #8A8A9A;
+    padding-top: 8px; /* Небольшой отступ сверху */
+    border-top: 1px solid #4A4A5A; /* Разделитель */
+    margin-top: 5px; /* Уменьшаем отступ */
 }
 
 #openrouterModelContainer {
-    margin-top: 8px;
+    margin-top: 5px; /* Уменьшаем отступ */
+    margin-bottom: 5px; /* Добавляем отступ снизу */
     position: relative;
 }
 
@@ -111,81 +270,61 @@ select {
     position: relative; 
     display: flex;
     align-items: center;
-    border: 1px solid #ccc; /* Оставляем рамку, как на скриншоте */
-    border-radius: 4px;
-    /* padding-right: 10px; Удаляем, т.к. стрелка теперь позиционируется абсолютом для точности */
-    background-color: white;
-    padding: 0; /* Убираем внутренний padding wrapper */
+    border: 1px solid #4A4A5A; /* Рамка в стиле других элементов */
+    border-radius: 8px; /* Скругление */
+    background-color: #3B3B4D; /* Фон в стиле других элементов */
+    padding: 0; 
 }
 
 #openrouterModelInput {
     width: 100%;
-    padding: 8px 25px 8px 10px; /* Право - место для стрелки, лево - отступ */
+    padding: 10px 30px 10px 12px; /* Синхронизируем с селектами */
+    font-size: 14px; /* Синхронизируем с селектами */
     border: none; 
-    border-radius: 4px; 
+    border-radius: 8px; 
     box-sizing: border-box;
     outline: none; 
-    font-size: 0.9em; /* Чуть меньше, как на скриншоте */
-    background-color: transparent; /* Чтобы был виден фон wrapper */
+    background-color: transparent; 
+    color: #FFFFFF; /* Цвет текста */
+}
+
+#openrouterModelInput::placeholder {
+    color: #8A8A9A; /* Цвет плейсхолдера */
 }
 
 .dropdown-arrow {
-    position: absolute; /* Позиционируем стрелку */
-    right: 10px;
+    position: absolute;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 0.8em;
-    color: #555;
+    color: #8A8A9A; /* Цвет стрелки */
     cursor: pointer; 
-    /* padding-left: 5px; Не нужен при абсолютном позиционировании */
 }
 
 .model-dropdown {
-    display: none; /* **Критично: Изначально скрыт** */
-    position: absolute; /* **Критично: Абсолютное позиционирование** */
-    top: 100%; 
+    display: none; 
+    position: absolute; 
+    top: calc(100% + 4px); /* Небольшой отступ от инпута */
     left: 0;
     right: 0;
-    background-color: white;
-    border: 1px solid #ccc;
+    background-color: #3B3B4D; /* Фон дропдауна */
+    border: 1px solid #4A4A5A; /* Рамка дропдауна */
     border-top: none; 
-    border-radius: 0 0 4px 4px;
+    border-radius: 0 0 8px 8px; /* Скругление нижних углов */
     max-height: 200px;
     overflow-y: auto;
     z-index: 1000; 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Немного более выраженная тень */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25); /* Тень для глубины */
 }
 
 .dropdown-item {
-    padding: 10px 12px; /* Немного больше padding */
+    padding: 10px 12px; 
     cursor: pointer;
     display: flex;
-    /* justify-content: space-between; убираем, т.к. имя модели может быть длинным */
     align-items: center;
-    border-bottom: 1px solid #eee; 
-}
-
-.model-icon-placeholder {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%; /* Круглая иконка-плейсхолдер */
-    background-color: #ddd;
-    color: #555;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-    font-size: 0.8em;
-    font-weight: bold;
-    flex-shrink: 0; /* Чтобы иконка не сжималась */
-}
-
-.model-name {
-    flex-grow: 1; /* Чтобы имя модели занимало доступное место */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis; /* Обрезать длинные имена */
-    font-size: 0.9em;
+    border-bottom: 1px solid #4A4A5A; /* Разделитель элементов */
+    color: #E0E0E0; /* Цвет текста элементов */
 }
 
 .dropdown-item:last-child {
@@ -193,25 +332,49 @@ select {
 }
 
 .dropdown-item:hover {
-    background-color: #f0f0f0;
+    background-color: #4A4A5A; /* Фон при наведении */
 }
 
 .dropdown-item.selected {
-    background-color: #e0efff; /* Голубоватый фон для выделения */
+    background-color: #5D5D6F; /* Фон выделенного элемента */
+    color: #FFFFFF; /* Текст выделенного элемента */
+}
+
+.model-icon-placeholder {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%; 
+    background-color: #4A4A5A; /* Фон плейсхолдера иконки */
+    color: #FFFFFF; /* Цвет текста на плейсхолдере */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 0.8em;
+    font-weight: bold;
+    flex-shrink: 0; 
+}
+
+.dropdown-item.selected .model-icon-placeholder {
+    background-color: #6B73FF; /* Цвет фона иконки для выделенного элемента */
+    color: #FFFFFF;
+}
+
+.model-name {
+    flex-grow: 1; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    font-size: 14px; /* Размер шрифта имени модели */
 }
 
 .dropdown-item.selected .model-name {
     font-weight: bold;
-    color: #007bff; /* Синий цвет текста для выделенной модели */
-}
-
-.dropdown-item.selected .model-icon-placeholder {
-    background-color: #007bff;
-    color: white;
+    /* color: #FFFFFF; уже задан для .dropdown-item.selected */
 }
 
 .dropdown-item.no-models {
-    color: #888;
+    color: #8A8A9A; /* Цвет текста для "Модели не добавлены" */
     cursor: default;
     justify-content: center;
 }
@@ -219,53 +382,34 @@ select {
 .delete-model-button {
     background: none;
     border: none;
-    color: #aaa; /* Более светлый крестик */
+    color: #8A8A9A; /* Цвет крестика */
     cursor: pointer;
-    font-size: 1.3em; /* Немного крупнее для лучшей читаемости */
-    padding: 0 0 0 10px; /* Отступ слева от имени модели */
-    line-height: 1; /* Для вертикального выравнивания */
+    font-size: 1.3em; 
+    padding: 0 0 0 10px; 
+    line-height: 1; 
     flex-shrink: 0;
 }
 
 .delete-model-button:hover {
-    color: #d9534f;
+    color: #FF6B6B; /* Цвет крестика при наведении (красный) */
 }
 
-.translate-button, .copy-button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    background-color: #4CAF50;
-    color: white;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s;
-}
-
-.translate-button:hover, .copy-button:hover {
-    background-color: #45a049;
-}
-
-.copy-button {
-    background-color: #2196F3;
-}
-
-.copy-button:hover {
-    background-color: #1976D2;
-}
-
+/* Обновляем стили для индикатора загрузки, если он используется в контексте OpenRouter или глобально */
 .loading-indicator {
-    display: flex;
+    display: none; /* По умолчанию скрыт, управляется JS */
     align-items: center;
+    justify-content: center; /* Центрируем, если он один */
     gap: 8px;
-    color: #666;
+    color: #B0B0C0; /* Цвет текста индикатора загрузки */
+    font-size: 14px;
+    padding: 10px 0; /* Отступы для индикатора */
 }
 
 .spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid #3498db;
+    border: 3px solid rgba(255, 255, 255, 0.2); /* Светлый след спиннера */
+    border-top: 3px solid #6B73FF; /* Активный цвет спиннера (из градиента кнопки) */
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -273,4 +417,123 @@ select {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Стили для модального окна настроек */
+.modal {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10;
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: #2C2C3A;
+    margin: 0;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    border-radius: 0;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #4A4A5A;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #FFFFFF;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #8A8A9A;
+}
+
+.modal-body {
+    padding: 10px 0;
+}
+
+.settings-section {
+    margin-bottom: 20px;
+}
+
+.settings-section h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: #FFFFFF;
+}
+
+.settings-option {
+    margin-bottom: 15px;
+}
+
+.settings-option label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #B0B0C0;
+}
+
+.settings-option select,
+.settings-option input[type="text"],
+.settings-option input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #4A4A5A;
+    border-radius: 8px;
+    background-color: #3B3B4D;
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.settings-option select:focus,
+.settings-option input[type="text"]:focus,
+.settings-option input[type="password"]:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 1px #6B73FF, 0 0 0 1px #C76BFF;
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-image: linear-gradient(#3B3B4D, #3B3B4D), 
+                      linear-gradient(90deg, #6B73FF 0%, #C76BFF 100%);
+}
+
+.modal-footer {
+    border-top: 1px solid #4A4A5A;
+    padding-top: 15px;
+    text-align: right;
+}
+
+.save-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #6B73FF 0%, #C76BFF 100%);
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
 } 
