@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "SmartTranslate LLM",
+  "version": "1.0.0",
+  "description": "Расширение для перевода текста с использованием LLM",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://api.deepseek.com/*",
+    "https://openrouter.ai/*"
+  ],
+  "web_accessible_resources": [{
+    "resources": ["icons/Tranzlit_icon.png"],
+    "matches": ["<all_urls>"]
+  }],
+  "background": {
+    "scripts": ["js/background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js"],
+      "css": ["css/content.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "html/popup.html",
+    "default_icon": {
+      "32": "icons/Tranzlit_icon.png",
+      "64": "icons/Tranzlit_icon.png",
+      "128": "icons/Tranzlit_icon.png",
+      "256": "icons/Tranzlit_icon.png"
+    }
+  },
+  "options_ui": {
+    "page": "html/options.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "32": "icons/Tranzlit_icon.png",
+    "64": "icons/Tranzlit_icon.png",
+    "128": "icons/Tranzlit_icon.png",
+    "256": "icons/Tranzlit_icon.png"
+  }
+} 

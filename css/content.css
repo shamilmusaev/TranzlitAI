@@ -1,0 +1,64 @@
+.smart-translate-trigger {
+    position: absolute;
+    background: rgba(157, 145, 145, 0.9);
+    color: #222;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    z-index: 10000;
+    font-size: 18px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(5px);
+}
+
+.smart-translate-trigger:hover {
+    background-color: rgba(147, 135, 135, 0.95);
+    transform: scale(1.1);
+}
+
+.smart-translate-trigger:active {
+    transform: scale(0.95);
+}
+
+#smart-translate-popup {
+    position: fixed;
+    background: rgba(157, 145, 145, 0.9);
+    padding: 15px 20px;
+    border-radius: 0px;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    min-width: 150px;
+    max-width: 60%;
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #222;
+    backdrop-filter: blur(5px);
+}
+
+#smart-translate-popup button {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    margin-right: 10px;
+    transition: background-color 0.2s;
+}
+
+#smart-translate-popup button:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+#smart-translate-popup button:last-child {
+    margin-right: 0;
+} 

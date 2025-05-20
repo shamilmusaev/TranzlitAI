@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SmartTranslate LLM</title>
+    <link rel="stylesheet" href="../css/popup.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="../icons/TranzlitAILogo.png" alt="TranzlitAI Logo" class="logo">
+            <a href="options.html" class="settings-link" title="Настройки">⚙️</a>
+        </div>
+
+        <div class="translation-container">
+            <div class="input-section">
+                <textarea id="sourceText" placeholder="Введите текст для перевода..."></textarea>
+                <div class="language-selectors">
+                    <select id="sourceLanguage">
+                        <option value="auto">Автоопределение</option>
+                        <option value="ru">Русский</option>
+                        <option value="en">Английский</option>
+                        <!-- Добавьте другие языки по необходимости -->
+                    </select>
+                    <select id="targetLanguage">
+                        <option value="ru">Русский</option>
+                        <option value="en">Английский</option>
+                        <!-- Добавьте другие языки по необходимости -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="provider-section">
+                <div class="provider-selector">
+                    <label>
+                        <input type="radio" name="provider" value="deepseek" checked>
+                        DeepSeek
+                    </label>
+                    <label>
+                        <input type="radio" name="provider" value="openrouter">
+                        OpenRouter
+                    </label>
+                </div>
+                <div id="openrouterModelContainer" style="display: none;">
+                    <div class="model-input-container">
+                        <div class="selected-model-display-wrapper">
+                            <input type="text" id="openrouterModelInput" placeholder="Введите или выберите модель...">
+                            <span class="dropdown-arrow" id="openrouterModelDropdownArrow">▼</span>
+                        </div>
+                        <div id="openrouterModelDropdown" class="model-dropdown" style="display: none;">
+                            <!-- Модели будут добавляться сюда через JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="translateButton" class="translate-button">Перевести</button>
+
+            <div class="output-section">
+                <div class="loading-indicator" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>Перевод...</span>
+                </div>
+                <textarea id="translatedText" readonly placeholder="Перевод появится здесь..."></textarea>
+                
+            </div>
+        </div>
+    </div>
+    <script src="../js/popup.js"></script>
+</body>
+</html> 

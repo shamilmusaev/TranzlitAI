@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Настройки SmartTranslate LLM</title>
+    <link rel="stylesheet" href="../css/options.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Настройки SmartTranslate LLM</h1>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="api-keys">API Ключи</button>
+            <button class="tab-button" data-tab="translation-settings">Настройки перевода</button>
+            <button class="tab-button" data-tab="logs">Логи</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Вкладка API Ключи -->
+            <div id="api-keys" class="tab-pane active">
+                <div class="api-section">
+                    <h2>DeepSeek API</h2>
+                    <div class="input-group">
+                        <input type="password" id="deepseekApiKey" placeholder="Введите API ключ DeepSeek">
+                        <button id="saveDeepseekKey" class="save-button">Сохранить</button>
+                    </div>
+                    <div id="deepseekStatus" class="status"></div>
+                </div>
+
+                <div class="api-section">
+                    <h2>OpenRouter API</h2>
+                    <div class="input-group">
+                        <input type="password" id="openrouterApiKey" placeholder="Введите API ключ OpenRouter">
+                        <button id="saveOpenrouterKey" class="save-button">Сохранить</button>
+                    </div>
+                    <div id="openrouterStatus" class="status"></div>
+                </div>
+            </div>
+
+            <!-- Вкладка Настройки перевода -->
+            <div id="translation-settings" class="tab-pane">
+                <div class="settings-section">
+                    <h2>Провайдер по умолчанию</h2>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="defaultProvider" value="deepseek" checked>
+                            DeepSeek
+                        </label>
+                        <label>
+                            <input type="radio" name="defaultProvider" value="openrouter">
+                            OpenRouter
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2>Модель OpenRouter по умолчанию</h2>
+                    <input type="text" id="defaultModel" placeholder="ID модели OpenRouter">
+                </div>
+
+                <div class="settings-section">
+                    <h2>Язык перевода по умолчанию</h2>
+                    <select id="defaultTargetLanguage">
+                        <option value="ru">Русский</option>
+                        <option value="en">Английский</option>
+                        <!-- Добавьте другие языки по необходимости -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Вкладка Логи -->
+            <div id="logs" class="tab-pane">
+                <div class="logs-controls">
+                    <button id="clearLogs" class="control-button">Очистить логи</button>
+                    <button id="copyLogs" class="control-button">Копировать логи</button>
+                </div>
+                <div class="log-levels">
+                    <label>
+                        <input type="checkbox" class="log-level" value="DEBUG" checked> DEBUG
+                    </label>
+                    <label>
+                        <input type="checkbox" class="log-level" value="INFO" checked> INFO
+                    </label>
+                    <label>
+                        <input type="checkbox" class="log-level" value="WARNING" checked> WARNING
+                    </label>
+                    <label>
+                        <input type="checkbox" class="log-level" value="ERROR" checked> ERROR
+                    </label>
+                </div>
+                <pre id="logContent" class="log-content"></pre>
+            </div>
+        </div>
+    </div>
+    <script src="../js/options.js"></script>
+</body>
+</html> 
