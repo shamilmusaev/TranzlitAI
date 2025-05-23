@@ -11,6 +11,7 @@
 
         <div class="tabs">
             <button class="tab-button active" data-tab="api-keys">API Ключи</button>
+            <button class="tab-button" data-tab="security">Безопасность</button>
             <button class="tab-button" data-tab="translation-settings">Настройки перевода</button>
             <button class="tab-button" data-tab="logs">Логи</button>
         </div>
@@ -43,6 +44,62 @@
                         <button id="saveChatgptKey" class="save-button">Сохранить</button>
                     </div>
                     <div id="chatgptStatus" class="status"></div>
+                </div>
+            </div>
+
+            <!-- Вкладка Безопасность -->
+            <div id="security" class="tab-pane">
+                <div class="security-section">
+                    <h2>🔒 Шифрование API Ключей</h2>
+                    <p class="security-description">
+                        Включите шифрование для дополнительной защиты ваших API ключей.
+                        Ключи будут зашифрованы с помощью AES-256 и мастер-пароля.
+                    </p>
+                    
+                    <div class="encryption-status">
+                        <div class="status-indicator">
+                            <span id="encryptionStatus" class="status-text">Загрузка...</span>
+                            <span id="encryptionIcon" class="status-icon">⏳</span>
+                        </div>
+                    </div>
+
+                    <div class="encryption-controls">
+                        <div class="input-group">
+                            <input type="password" id="masterPassword" placeholder="Введите мастер-пароль" 
+                                   minlength="8" autocomplete="new-password">
+                            <div class="password-strength">
+                                <div id="strengthBar" class="strength-bar"></div>
+                                <span id="strengthText" class="strength-text"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button id="enableEncryption" class="security-button enable-btn" disabled>
+                                🔐 Включить шифрование
+                            </button>
+                            <button id="disableEncryption" class="security-button disable-btn" disabled>
+                                🔓 Отключить шифрование
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="security-info">
+                        <h3>ℹ️ Информация о безопасности</h3>
+                        <ul class="info-list">
+                            <li><strong>AES-256-GCM:</strong> Военный стандарт шифрования</li>
+                            <li><strong>PBKDF2:</strong> 100,000 итераций для защиты от брутфорса</li>
+                            <li><strong>Локальное хранение:</strong> Данные не покидают ваш компьютер</li>
+                            <li><strong>Мастер-пароль:</strong> Известен только вам, не сохраняется</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-box">
+                        <h4>⚠️ Важно помнить</h4>
+                        <p>
+                            Если вы забудете мастер-пароль, восстановить зашифрованные ключи будет невозможно.
+                            Вам придется ввести API ключи заново.
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -105,6 +162,7 @@
             </div>
         </div>
     </div>
+    <script src="../js/security.js"></script>
     <script src="../js/options.js"></script>
 </body>
 </html> 

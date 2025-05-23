@@ -53,16 +53,69 @@ async function getSettings() {
     }
 }
 
+// Функция для определения оптимального промпта
+function getOptimalPrompt(text, targetLang, isHTML) {
+    const textLength = text.length;
+    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+    
+    // 1. HTML контент - всегда расширенный промпт
+    if (isHTML) {
+        return `Переводи HTML на ${targetLang}, сохраняя теги. Только перевод.`; // ~9 токенов
+    }
+    
+    // 2. Одно слово - с примером формата
+    if (wordCount === 1 && textLength <= 15) {
+        return `Переведи слово на ${targetLang}, отвечай только переводом:`; // ~8 токенов, но точно работает
+    }
+    
+    // 3. Очень короткий текст (2 слова)
+    if (textLength <= 20 || wordCount <= 2) {
+        return `Переводи на ${targetLang}:`; // ~3 токена
+    }
+    
+    // 4. Короткий текст (3-10 слов)
+    if (textLength <= 100 || wordCount <= 10) {
+        return `Переводи на ${targetLang}:`; // ~3 токена
+    }
+    
+    // 5. Средний текст
+    if (textLength <= 500) {
+        return `Переводи на ${targetLang}. Только перевод.`; // ~6 токенов
+    }
+    
+    // 6. Длинный текст (нужно сохранить структуру)
+    return `Переводи на ${targetLang}, сохраняя структуру и форматирование.`; // ~8 токенов
+}
+
+// Функция для определения оптимального количества max_tokens
+function getOptimalMaxTokens(inputText, isHTML) {
+    const inputLength = inputText.length;
+    
+    // Для HTML контента нужно больше токенов из-за тегов
+    const multiplier = isHTML ? 2.0 : 1.5;
+    
+    // Эмпирическое правило: выходной текст ≈ 1.2-2.0x входной
+    const estimatedOutputLength = Math.ceil(inputLength * multiplier);
+    
+    // Токенов примерно в 4 раза меньше символов для русского/английского
+    const estimatedTokens = Math.ceil(estimatedOutputLength / 4);
+    
+    // Минимум 20, максимум 500, с буфером +10
+    const result = Math.max(20, Math.min(500, estimatedTokens + 10));
+    
+    console.log(`[TOKEN OPTIMIZATION] Input: ${inputLength} chars, Estimated output: ${estimatedOutputLength} chars, Max tokens: ${result}`);
+    
+    return result;
+}
+
 // Функция для перевода через DeepSeek
 async function translateWithDeepSeek(text, sourceLang, targetLang, apiKey, isHTML = false) {
     try {
         console.log('Starting DeepSeek translation', { text, sourceLang, targetLang, isHTML });
         
-        const systemPrompt = isHTML 
-            ? "Переводи HTML текст точно, сохраняя всю HTML разметку, теги, форматирование, структуру и стиль. Переводи только текстовое содержимое внутри тегов, но сохраняй все HTML теги без изменений. Отвечай только переведенным HTML."
-            : "Переводи текст точно, сохраняя оригинальное форматирование, разметку, структуру и стиль. Если текст содержит жирный шрифт, заголовки или особое форматирование - сохраняй их в переводе. Отвечай только переводом.";
+        const systemPrompt = getOptimalPrompt(text, targetLang, isHTML);
         
-        const userPrompt = `На ${targetLang}: ${text}`;
+        const userPrompt = text;
 
         const response = await fetch(DEEPSEEK_API_URL, {
             method: 'POST',
@@ -76,7 +129,7 @@ async function translateWithDeepSeek(text, sourceLang, targetLang, apiKey, isHTM
                     { role: 'user', content: userPrompt }
                 ],
                 model: 'deepseek-chat',
-                max_tokens: 500, // Увеличиваем для HTML
+                max_tokens: getOptimalMaxTokens(text, isHTML),
                 temperature: 0.3
             })
         });
@@ -98,11 +151,9 @@ async function translateWithOpenRouter(text, sourceLang, targetLang, apiKey, mod
     try {
         console.log('Starting OpenRouter translation', { text, sourceLang, targetLang, model, isHTML });
         
-        const systemPrompt = isHTML 
-            ? "Переводи HTML текст точно, сохраняя всю HTML разметку, теги, форматирование, структуру и стиль. Переводи только текстовое содержимое внутри тегов, но сохраняй все HTML теги без изменений. Отвечай только переведенным HTML."
-            : "Переводи текст точно, сохраняя оригинальное форматирование, разметку, структуру и стиль. Если текст содержит жирный шрифт, заголовки или особое форматирование - сохраняй их в переводе. Отвечай только переводом.";
+        const systemPrompt = getOptimalPrompt(text, targetLang, isHTML);
         
-        const userPrompt = `На ${targetLang}: ${text}`;
+        const userPrompt = text;
 
         const response = await fetch(OPENROUTER_API_URL, {
             method: 'POST',
@@ -116,7 +167,7 @@ async function translateWithOpenRouter(text, sourceLang, targetLang, apiKey, mod
                     { role: 'user', content: userPrompt }
                 ],
                 model: model,
-                max_tokens: 500, // Увеличиваем для HTML
+                max_tokens: getOptimalMaxTokens(text, isHTML),
                 temperature: 0.3
             })
         });
@@ -138,11 +189,9 @@ async function translateWithChatGPT(text, sourceLang, targetLang, apiKey, model,
     try {
         console.log('Starting ChatGPT translation', { text, sourceLang, targetLang, model, isHTML });
         
-        const systemPrompt = isHTML 
-            ? "Переводи HTML текст точно, сохраняя всю HTML разметку, теги, форматирование, структуру и стиль. Переводи только текстовое содержимое внутри тегов, но сохраняй все HTML теги без изменений. Отвечай только переведенным HTML."
-            : "Переводи текст точно, сохраняя оригинальное форматирование, разметку, структуру и стиль. Если текст содержит жирный шрифт, заголовки или особое форматирование - сохраняй их в переводе. Отвечай только переводом.";
+        const systemPrompt = getOptimalPrompt(text, targetLang, isHTML);
             
-        const userPrompt = `На ${targetLang}: ${text}`;
+        const userPrompt = text;
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -156,7 +205,7 @@ async function translateWithChatGPT(text, sourceLang, targetLang, apiKey, model,
                     { role: 'user', content: userPrompt }
                 ],
                 model: model,
-                max_tokens: 500, // Увеличиваем для HTML
+                max_tokens: getOptimalMaxTokens(text, isHTML),
                 temperature: 0.3
             })
         });

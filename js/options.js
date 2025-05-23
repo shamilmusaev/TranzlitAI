@@ -21,6 +21,15 @@ const copyLogs = document.getElementById('copyLogs');
 const logLevels = document.querySelectorAll('.log-level');
 const logContent = document.getElementById('logContent');
 
+// Элементы безопасности
+const encryptionStatus = document.getElementById('encryptionStatus');
+const encryptionIcon = document.getElementById('encryptionIcon');
+const masterPassword = document.getElementById('masterPassword');
+const strengthBar = document.getElementById('strengthBar');
+const strengthText = document.getElementById('strengthText');
+const enableEncryption = document.getElementById('enableEncryption');
+const disableEncryption = document.getElementById('disableEncryption');
+
 // Загрузка настроек при открытии страницы
 document.addEventListener('DOMContentLoaded', async () => {
     const settings = await browserAPI.storage.local.get([
@@ -61,6 +70,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Загружаем логи
     loadLogs();
+    
+    // Загружаем статус шифрования
+    await loadEncryptionStatus();
 });
 
 // Обработка вкладок
@@ -197,4 +209,154 @@ copyLogs.addEventListener('click', () => {
 
 logLevels.forEach(checkbox => {
     checkbox.addEventListener('change', loadLogs);
+});
+
+// Функции безопасности
+async function loadEncryptionStatus() {
+    try {
+        const isEnabled = await securityManager.isEncryptionEnabled();
+        updateEncryptionStatus(isEnabled);
+    } catch (error) {
+        console.error('Error loading encryption status:', error);
+        encryptionStatus.textContent = 'Ошибка загрузки статуса';
+        encryptionIcon.textContent = '❌';
+    }
+}
+
+function updateEncryptionStatus(isEnabled) {
+    if (isEnabled) {
+        encryptionStatus.textContent = 'Шифрование включено';
+        encryptionIcon.textContent = '🔒';
+        enableEncryption.disabled = true;
+        disableEncryption.disabled = false;
+    } else {
+        encryptionStatus.textContent = 'Шифрование отключено';
+        encryptionIcon.textContent = '🔓';
+        enableEncryption.disabled = false;
+        disableEncryption.disabled = true;
+    }
+}
+
+function checkPasswordStrength(password) {
+    let strength = 0;
+    let feedback = [];
+
+    if (password.length >= 8) strength += 1;
+    else feedback.push('минимум 8 символов');
+
+    if (/[a-z]/.test(password)) strength += 1;
+    else feedback.push('строчные буквы');
+
+    if (/[A-Z]/.test(password)) strength += 1;
+    else feedback.push('заглавные буквы');
+
+    if (/[0-9]/.test(password)) strength += 1;
+    else feedback.push('цифры');
+
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    else feedback.push('специальные символы');
+
+    const levels = ['', 'weak', 'fair', 'good', 'strong'];
+    const texts = ['', 'Слабый', 'Удовлетворительный', 'Хороший', 'Сильный'];
+    
+    return {
+        level: levels[strength],
+        text: texts[strength],
+        feedback: feedback
+    };
+}
+
+function updatePasswordStrength() {
+    const password = masterPassword.value;
+    const strength = checkPasswordStrength(password);
+    
+    // Обновляем индикатор силы
+    strengthBar.className = `strength-bar ${strength.level}`;
+    
+    if (password.length === 0) {
+        strengthText.textContent = '';
+        enableEncryption.disabled = true;
+        disableEncryption.disabled = true;
+    } else {
+        strengthText.textContent = `${strength.text}${strength.feedback.length > 0 ? ` (нужно: ${strength.feedback.join(', ')})` : ''}`;
+        
+        // Кнопки активны только при достаточно сильном пароле
+        const isEnabled = securityManager && 
+            encryptionStatus.textContent.includes('включено');
+        const isStrongEnough = strength.level === 'good' || strength.level === 'strong';
+        
+        enableEncryption.disabled = isEnabled || !isStrongEnough;
+        disableEncryption.disabled = !isEnabled || password.length < 1;
+    }
+}
+
+// Обработчики событий для безопасности
+masterPassword.addEventListener('input', updatePasswordStrength);
+
+enableEncryption.addEventListener('click', async () => {
+    const password = masterPassword.value;
+    if (!password) {
+        alert('Введите мастер-пароль');
+        return;
+    }
+
+    try {
+        enableEncryption.disabled = true;
+        enableEncryption.textContent = '🔄 Шифрование...';
+        
+        await securityManager.enableEncryption(password);
+        
+        updateEncryptionStatus(true);
+        masterPassword.value = '';
+        updatePasswordStrength();
+        
+        alert('✅ Шифрование успешно включено!\nВаши API ключи теперь зашифрованы.');
+        
+    } catch (error) {
+        console.error('Encryption error:', error);
+        alert('❌ Ошибка при включении шифрования: ' + error.message);
+        enableEncryption.disabled = false;
+    } finally {
+        enableEncryption.textContent = '🔐 Включить шифрование';
+    }
+});
+
+disableEncryption.addEventListener('click', async () => {
+    const password = masterPassword.value;
+    if (!password) {
+        alert('Введите мастер-пароль для расшифровки ключей');
+        return;
+    }
+
+    const confirmed = confirm(
+        '⚠️ Вы уверены, что хотите отключить шифрование?\n\n' +
+        'API ключи будут сохранены в незашифрованном виде.'
+    );
+    
+    if (!confirmed) return;
+
+    try {
+        disableEncryption.disabled = true;
+        disableEncryption.textContent = '🔄 Расшифровка...';
+        
+        await securityManager.disableEncryption(password);
+        
+        updateEncryptionStatus(false);
+        masterPassword.value = '';
+        updatePasswordStrength();
+        
+        alert('✅ Шифрование отключено.\nAPI ключи сохранены в открытом виде.');
+        
+    } catch (error) {
+        console.error('Decryption error:', error);
+        alert('❌ Ошибка при отключении шифрования: ' + error.message);
+        disableEncryption.disabled = false;
+    } finally {
+        disableEncryption.textContent = '🔓 Отключить шифрование';
+    }
+});
+
+// Включаем проверку силы пароля при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    updatePasswordStrength();
 }); 

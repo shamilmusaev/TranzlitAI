@@ -91,7 +91,8 @@
     }
 }
 
-#smart-translate-popup {
+#smart-translate-popup,
+.smart-translate-popup {
     position: fixed;
     background: rgba(44, 44, 58, 0.98);
     border-radius: 12px;
@@ -116,7 +117,8 @@
 }
 
 /* Кастомные resize handles для лучшего контроля */
-#smart-translate-popup::before {
+#smart-translate-popup::before,
+.smart-translate-popup::before {
     content: '';
     position: absolute;
     top: -2px;
@@ -330,7 +332,8 @@
     z-index: 2;
 }
 
-#smart-translate-popup .translation-text {
+#smart-translate-popup .translation-text,
+.smart-translate-popup .translation-text {
     margin: 0;
     padding: 12px;
     background: rgba(59, 59, 77, 0.6);
@@ -344,21 +347,25 @@
 }
 
 /* Кастомная полоса прокрутки */
-#smart-translate-popup .translation-text::-webkit-scrollbar {
+#smart-translate-popup .translation-text::-webkit-scrollbar,
+.smart-translate-popup .translation-text::-webkit-scrollbar {
     width: 6px;
 }
 
-#smart-translate-popup .translation-text::-webkit-scrollbar-track {
+#smart-translate-popup .translation-text::-webkit-scrollbar-track,
+.smart-translate-popup .translation-text::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
 }
 
-#smart-translate-popup .translation-text::-webkit-scrollbar-thumb {
+#smart-translate-popup .translation-text::-webkit-scrollbar-thumb,
+.smart-translate-popup .translation-text::-webkit-scrollbar-thumb {
     background: rgba(107, 115, 255, 0.6);
     border-radius: 3px;
 }
 
-#smart-translate-popup .translation-text::-webkit-scrollbar-thumb:hover {
+#smart-translate-popup .translation-text::-webkit-scrollbar-thumb:hover,
+.smart-translate-popup .translation-text::-webkit-scrollbar-thumb:hover {
     background: rgba(107, 115, 255, 0.8);
 }
 
@@ -497,4 +504,100 @@
 .popup-resize-handle:hover {
     background: linear-gradient(135deg, transparent 50%, rgba(107, 115, 255, 0.7) 50%);
     cursor: se-resize;
+}
+
+/* Стили для expanded режима */
+.smart-translate-popup.expanded-mode {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+
+.smart-translate-popup.expanded-mode::before {
+    display: none;
+}
+
+/* Стили для hover зоны */
+.hover-zone {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    z-index: 10;
+    background: transparent;
+    cursor: default;
+}
+
+.hover-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(44, 44, 58, 0.85);
+    border: 1px solid rgba(107, 115, 255, 0.2);
+    border-radius: 8px;
+    margin: 10px;
+    backdrop-filter: blur(15px);
+    box-shadow: 
+        0 0 15px rgba(107, 115, 255, 0.2),
+        0 0 25px rgba(199, 107, 255, 0.1),
+        0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.hover-zone:hover .hover-buttons {
+    opacity: 1 !important;
+    transform: translateY(0px) !important;
+}
+
+/* Анимации для перехода в expanded режим */
+.smart-translate-popup.expanded-mode .translation-text {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(44, 44, 58, 0.95) !important;
+    border: none !important;
+    border-left: 3px solid #6B73FF !important;
+    border-radius: 12px !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    max-height: none !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    box-shadow: none !important;
+    backdrop-filter: blur(15px);
+}
+
+/* Стили для клонированных кнопок в hover зоне */
+.hover-buttons .popup-pin-button,
+.hover-buttons .popup-expand-button,
+.hover-buttons .popup-action-button {
+    opacity: 0.9;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-buttons .popup-pin-button:hover,
+.hover-buttons .popup-expand-button:hover,
+.hover-buttons .popup-action-button:hover {
+    opacity: 1;
+    transform: scale(1.05) translateY(-1px);
+}
+
+/* Улучшенные переходы */
+.smart-translate-popup:not(.dragging) {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smart-translate-popup .popup-header {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smart-translate-popup .popup-particles {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smart-translate-popup .popup-resize-handle {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 } 

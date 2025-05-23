@@ -7,7 +7,7 @@ let lastSelectedHTML = ''; // Добавляем переменную для HTM
 let lastSelectionRange = null;
 let isDraggingPopup = false; // Флаг для отслеживания перетаскивания
 let translationInProgress = false; // Флаг для отслеживания процесса перевода
-let isTranslationWindowOpen = false; // Флаг для отслеживания открытого окна перевода
+let hasUnpinnedTranslationWindow = false; // Флаг для отслеживания незакрепленного окна перевода
 
 // Создаем иконку-триггер
 function createTriggerIcon() {
@@ -90,9 +90,9 @@ function positionTriggerIcon(icon, selection) {
 
 // Обработчик выделения текста
 function handleTextSelection() {
-    // Игнорируем если идет перетаскивание popup или перевод или уже открыто окно перевода
-    if (isDraggingPopup || translationInProgress || isTranslationWindowOpen) {
-        console.log('Ignoring text selection - dragging popup, translation in progress, or translation window is open');
+    // Игнорируем если идет перетаскивание popup или перевод или есть незакрепленное окно перевода
+    if (isDraggingPopup || translationInProgress || hasUnpinnedTranslationWindow) {
+        console.log('Ignoring text selection - dragging popup, translation in progress, or unpinned translation window is open');
         return;
     }
     
@@ -100,10 +100,12 @@ function handleTextSelection() {
     const selectedText = selection.toString().trim();
     
     // Проверяем, что выделение не внутри модального окна перевода
-    const popup = document.getElementById('smart-translate-popup');
-    if (popup && selection.anchorNode && popup.contains(selection.anchorNode)) {
-        console.log('Selection inside translation popup, ignoring');
-        return;
+    const popups = document.querySelectorAll('.smart-translate-popup, #smart-translate-popup');
+    for (let popup of popups) {
+        if (popup && selection.anchorNode && popup.contains(selection.anchorNode)) {
+            console.log('Selection inside translation popup, ignoring');
+            return;
+        }
     }
     
     // Дополнительная отладочная информация
@@ -129,7 +131,7 @@ function handleTextSelection() {
         // Если нет выделенного текста, скрываем иконку
         console.log('No text selected, hiding icon');
         if (window.triggerIcon) {
-            window.triggerIcon.style.display = 'none';
+        window.triggerIcon.style.display = 'none';
         }
         // Очищаем сохраненные данные
         lastSelectedText = '';
@@ -206,20 +208,18 @@ function createTranslationPopup(text, icon, isHTML = false) {
     console.log('Creating translation popup with text:', text);
     console.log('Is HTML:', isHTML);
     
-    // Устанавливаем флаг что окно перевода открыто
-    isTranslationWindowOpen = true;
+    // Устанавливаем флаг что есть незакрепленное окно перевода
+    hasUnpinnedTranslationWindow = true;
     
     // Иконка уже скрыта при клике, дополнительно скрывать не нужно
     
-    // Удаляем предыдущее всплывающее окно, если оно существует
-    const existingPopup = document.getElementById('smart-translate-popup');
-    if (existingPopup) {
-        document.body.removeChild(existingPopup);
-    }
+    // Создаем уникальный ID для popup
+    const popupId = 'smart-translate-popup-' + Date.now();
     
     // Создаем новое всплывающее окно
     const popup = document.createElement('div');
-    popup.id = 'smart-translate-popup';
+    popup.id = popupId;
+    popup.className = 'smart-translate-popup';
     
     // Флаг закрепления
     let isPinned = false;
@@ -247,47 +247,117 @@ function createTranslationPopup(text, icon, isHTML = false) {
     
     // Переменные для расширения
     let isExpanded = false;
-    let originalWidth = '';
-    let originalHeight = '';
     
     function toggleExpanded() {
         if (!isExpanded) {
-            // Сохраняем оригинальные размеры
-            originalWidth = popup.style.width || '400px';
-            originalHeight = popup.style.height || '200px';
-            
-            // Расширяем окно
-            popup.style.width = '600px';
-            popup.style.height = '400px';
-            popup.style.transition = 'width 0.3s ease, height 0.3s ease';
-            
-            // Расширяем содержимое перевода
-            const translationTextElement = popup.querySelector('.translation-text');
-            if (translationTextElement) {
-                translationTextElement.style.maxHeight = '320px';
-                translationTextElement.style.transition = 'max-height 0.3s ease';
-            }
-            
+            // Режим "развернуто" - скрываем UI, показываем только содержимое
             isExpanded = true;
-            expandButton.innerHTML = `<img src="${browserAPI.runtime.getURL('icons/collapse-icon.svg')}" alt="Collapse" style="width: 16px; height: 16px;">`;
-            expandButton.title = 'Свернуть окно';
-        } else {
-            // Возвращаем к оригинальным размерам
-            popup.style.width = originalWidth;
-            popup.style.height = originalHeight;
-            popup.style.transition = 'width 0.3s ease, height 0.3s ease';
             
-            // Возвращаем размер содержимого
+            // Добавляем класс для expanded режима
+            popup.classList.add('expanded-mode');
+            
+            // Скрываем все элементы UI с анимацией
+            header.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            header.style.opacity = '0';
+            header.style.transform = 'translateY(-20px)';
+            
+            particlesElement.style.transition = 'opacity 0.3s ease';
+            particlesElement.style.opacity = '0';
+            
+            resizeHandle.style.transition = 'opacity 0.3s ease';
+            resizeHandle.style.opacity = '0';
+            
+            // Убираем рамку и тень
+            popup.style.transition = 'all 0.4s ease';
+            popup.style.background = 'transparent';
+            popup.style.border = 'none';
+            popup.style.boxShadow = 'none';
+            popup.style.backdropFilter = 'none';
+            
+            // Изменяем стили содержимого
             const translationTextElement = popup.querySelector('.translation-text');
             if (translationTextElement) {
-                translationTextElement.style.maxHeight = '';
-                translationTextElement.style.transition = 'max-height 0.3s ease';
+                translationTextElement.style.transition = 'all 0.4s ease';
+                translationTextElement.style.background = 'rgba(44, 44, 58, 0.95)';
+                translationTextElement.style.border = 'none';
+                translationTextElement.style.borderLeft = '3px solid #6B73FF';
+                translationTextElement.style.borderRadius = '12px';
+                translationTextElement.style.margin = '0';
+                translationTextElement.style.padding = '20px';
+                translationTextElement.style.maxHeight = 'none';
+                translationTextElement.style.fontSize = '16px';
+                translationTextElement.style.lineHeight = '1.6';
+                translationTextElement.style.boxShadow = 'none';
+                translationTextElement.style.backdropFilter = 'blur(15px)';
             }
             
+            // Через 300ms полностью скрываем элементы UI
+            setTimeout(() => {
+                header.style.display = 'none';
+                particlesElement.style.display = 'none';
+                resizeHandle.style.display = 'none';
+                
+                // Создаем hover зону для показа кнопок
+                createHoverZone();
+            }, 300);
+            
+        } else {
+            // Режим "свернуто" - восстанавливаем UI
             isExpanded = false;
-            expandButton.innerHTML = `<img src="${browserAPI.runtime.getURL('icons/expand-icon.svg')}" alt="Expand" style="width: 16px; height: 16px;">`;
-            expandButton.title = 'Расширить окно';
+            
+            // Удаляем класс expanded режима
+            popup.classList.remove('expanded-mode');
+            
+            // Удаляем hover зону
+            removeHoverZone();
+            
+            // Показываем элементы UI
+            header.style.display = 'flex';
+            particlesElement.style.display = 'block';
+            resizeHandle.style.display = 'block';
+            
+            // Восстанавливаем стили popup
+            popup.style.transition = 'all 0.4s ease';
+            popup.style.background = 'rgba(44, 44, 58, 0.98)';
+            popup.style.border = '2px solid transparent';
+            popup.style.boxShadow = `
+                0 0 20px rgba(107, 115, 255, 0.3),
+                0 0 40px rgba(199, 107, 255, 0.2),
+                0 15px 35px rgba(0, 0, 0, 0.4)
+            `;
+            popup.style.backdropFilter = 'blur(15px)';
+            
+            // Восстанавливаем стили содержимого
+            const translationTextElement = popup.querySelector('.translation-text');
+            if (translationTextElement) {
+                translationTextElement.style.transition = 'all 0.4s ease';
+                translationTextElement.style.background = 'rgba(59, 59, 77, 0.6)';
+                translationTextElement.style.border = 'none';
+                translationTextElement.style.borderLeft = '3px solid #6B73FF';
+                translationTextElement.style.borderRadius = '8px';
+                translationTextElement.style.margin = '0';
+                translationTextElement.style.padding = '12px';
+                translationTextElement.style.maxHeight = '180px';
+                translationTextElement.style.fontSize = '14px';
+                translationTextElement.style.lineHeight = '1.5';
+            }
+            
+            // Через 100ms показываем элементы UI с анимацией
+            setTimeout(() => {
+                header.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                header.style.opacity = '1';
+                header.style.transform = 'translateY(0px)';
+                
+                particlesElement.style.transition = 'opacity 0.3s ease';
+                particlesElement.style.opacity = '1';
+                
+                resizeHandle.style.transition = 'opacity 0.3s ease';
+                resizeHandle.style.opacity = '1';
+            }, 100);
         }
+        
+        // Обновляем иконку кнопки
+        updateExpandButton();
         
         // Убираем transition после анимации
         setTimeout(() => {
@@ -296,7 +366,133 @@ function createTranslationPopup(text, icon, isHTML = false) {
             if (translationTextElement) {
                 translationTextElement.style.transition = '';
             }
-        }, 300);
+        }, 400);
+    }
+    
+    function updateExpandButton() {
+        if (isExpanded) {
+            expandButton.innerHTML = `<img src="${browserAPI.runtime.getURL('icons/collapse-icon.svg')}" alt="Collapse" style="width: 16px; height: 16px;">`;
+            expandButton.title = 'Свернуть окно';
+        } else {
+            expandButton.innerHTML = `<img src="${browserAPI.runtime.getURL('icons/expand-icon.svg')}" alt="Expand" style="width: 16px; height: 16px;">`;
+            expandButton.title = 'Развернуть окно';
+        }
+    }
+    
+    // Функции для hover зоны
+    function createHoverZone() {
+        if (popup.querySelector('.hover-zone')) return; // Уже существует
+        
+        const hoverZone = document.createElement('div');
+        hoverZone.className = 'hover-zone';
+        hoverZone.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            z-index: 10;
+            background: transparent;
+            cursor: default;
+        `;
+        
+        // Создаем полупрозрачные кнопки
+        const hoverButtons = document.createElement('div');
+        hoverButtons.className = 'hover-buttons';
+        hoverButtons.style.cssText = `
+        display: flex;
+            justify-content: space-between;
+        align-items: center;
+            padding: 15px 20px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            background: rgba(44, 44, 58, 0.8);
+            border-radius: 8px;
+            margin: 10px;
+            backdrop-filter: blur(10px);
+        `;
+        
+        // Левые кнопки
+        const leftHoverActions = leftActions.cloneNode(true);
+        leftHoverActions.style.opacity = '0.8';
+        
+        // Правые кнопки  
+        const rightHoverActions = headerActions.cloneNode(true);
+        rightHoverActions.style.opacity = '0.8';
+        
+        hoverButtons.appendChild(leftHoverActions);
+        hoverButtons.appendChild(rightHoverActions);
+        hoverZone.appendChild(hoverButtons);
+        
+        // События для hover
+        hoverZone.addEventListener('mouseenter', () => {
+            hoverButtons.style.opacity = '1';
+            hoverButtons.style.transform = 'translateY(0px)';
+        });
+        
+        hoverZone.addEventListener('mouseleave', () => {
+            hoverButtons.style.opacity = '0';
+            hoverButtons.style.transform = 'translateY(-10px)';
+        });
+        
+        // Привязываем события к клонированным кнопкам
+        const hoverExpandButton = leftHoverActions.querySelector('.popup-expand-button');
+        if (hoverExpandButton) {
+            hoverExpandButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleExpanded();
+            });
+        }
+        
+        const hoverPinButton = leftHoverActions.querySelector('.popup-pin-button');
+        if (hoverPinButton) {
+            hoverPinButton.addEventListener('click', togglePin);
+        }
+        
+        const hoverCopyButton = rightHoverActions.querySelector('.popup-copy-button');
+        if (hoverCopyButton) {
+            hoverCopyButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const textToCopy = isHTML ? content.querySelector('.translation-text').textContent : text;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    hoverCopyButton.title = 'Скопировано!';
+                    setTimeout(() => {
+                        hoverCopyButton.title = 'Копировать';
+                    }, 2000);
+                });
+            });
+        }
+        
+        const hoverCloseButton = rightHoverActions.querySelector('.popup-close-button');
+        if (hoverCloseButton) {
+            hoverCloseButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (popup.parentNode) {
+                    popup.style.opacity = '0';
+                    popup.style.transform = 'scale(0.8) translateY(10px)';
+                    setTimeout(() => {
+                        if (popup.parentNode) {
+                            document.body.removeChild(popup);
+                            document.removeEventListener('click', handleOutsideClick);
+                            checkForUnpinnedWindows();
+                        }
+                    }, 200);
+                }
+            });
+        }
+        
+        popup.appendChild(hoverZone);
+    }
+    
+    function removeHoverZone() {
+        const hoverZone = popup.querySelector('.hover-zone');
+        if (hoverZone) {
+            popup.removeChild(hoverZone);
+        }
     }
     
     // Контейнер для левых кнопок
@@ -354,8 +550,24 @@ function createTranslationPopup(text, icon, isHTML = false) {
     const resizeHandle = document.createElement('div');
     resizeHandle.className = 'popup-resize-handle';
     
-    // Функция закрепления/открепления
-    function togglePin() {
+    // Функция закрепления/открепления с debounce
+    let pinClickTimeout = null;
+    function togglePin(e) {
+        // Предотвращаем всплытие события
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        
+        // Debounce для предотвращения множественных кликов
+        if (pinClickTimeout) {
+            return;
+        }
+        
+        pinClickTimeout = setTimeout(() => {
+            pinClickTimeout = null;
+        }, 300);
+        
         isPinned = !isPinned;
         if (isPinned) {
             pinButton.innerHTML = `<img src="${browserAPI.runtime.getURL('icons/pinned-icon.svg')}" alt="Unpin" style="width: 16px; height: 16px;">`;
@@ -366,6 +578,8 @@ function createTranslationPopup(text, icon, isHTML = false) {
             pinButton.title = 'Закрепить окно';
             pinButton.classList.remove('pinned');
         }
+        // Проверяем наличие незакрепленных окон после изменения состояния
+        setTimeout(() => checkForUnpinnedWindows(), 100);
     }
     
     pinButton.addEventListener('click', togglePin);
@@ -400,23 +614,27 @@ function createTranslationPopup(text, icon, isHTML = false) {
         offsetY = e.clientY - parseFloat(popup.style.top || 0);
         document.body.style.userSelect = 'none';
         popup.style.cursor = 'move';
+        popup.style.transition = 'none'; // Убираем переходы при перемещении
+        popup.classList.add('dragging'); // Добавляем класс для отключения transition
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
         e.preventDefault();
     });
-    
+
     function handleMouseMove(e) {
         if (!isDragging) return;
         popup.style.left = `${e.clientX - offsetX}px`;
         popup.style.top = `${e.clientY - offsetY}px`;
     }
-    
+
     function handleMouseUp() {
         if (!isDragging) return;
         isDragging = false;
         isDraggingPopup = false; // Сбрасываем глобальный флаг
         document.body.style.userSelect = '';
         popup.style.cursor = '';
+        popup.style.transition = ''; // Восстанавливаем переходы после перемещения
+        popup.classList.remove('dragging'); // Убираем класс для восстановления transition
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         
@@ -428,8 +646,8 @@ function createTranslationPopup(text, icon, isHTML = false) {
     
     // Обработчик клика вне окна для закрытия (только если не закреплено)
     function handleOutsideClick(e) {
-        // Не закрываем окно если идет resize или окно закреплено
-        if (isResizingPopup || isPinned || popup.contains(e.target)) {
+        // Не закрываем окно если идет resize, окно закреплено, или недавно был клик по pin кнопке
+        if (isResizingPopup || isPinned || popup.contains(e.target) || pinClickTimeout) {
             return;
         }
         
@@ -440,11 +658,27 @@ function createTranslationPopup(text, icon, isHTML = false) {
                 if (popup.parentNode) {
                     document.body.removeChild(popup);
                     document.removeEventListener('click', handleOutsideClick);
-                    // Сбрасываем флаг открытого окна перевода
-                    isTranslationWindowOpen = false;
+                    // Проверяем, есть ли еще незакрепленные окна
+                    checkForUnpinnedWindows();
                 }
             }, 200);
         }
+    }
+    
+    // Функция для проверки наличия незакрепленных окон
+    function checkForUnpinnedWindows() {
+        const allPopups = document.querySelectorAll('.smart-translate-popup, #smart-translate-popup');
+        let hasUnpinned = false;
+        
+        for (let popup of allPopups) {
+            const pinButton = popup.querySelector('.popup-pin-button');
+            if (pinButton && !pinButton.classList.contains('pinned')) {
+                hasUnpinned = true;
+                break;
+            }
+        }
+        
+        hasUnpinnedTranslationWindow = hasUnpinned;
     }
     
     // Добавляем обработчик клика вне окна с небольшой задержкой
@@ -522,7 +756,9 @@ function createTranslationPopup(text, icon, isHTML = false) {
     content.appendChild(textContent);
     
     // События кнопок
-    copyButton.addEventListener('click', () => {
+    copyButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         // Копируем в буфер простой текст для совместимости
         const textToCopy = isHTML ? textContent.textContent : text;
         navigator.clipboard.writeText(textToCopy).then(() => {
@@ -533,16 +769,18 @@ function createTranslationPopup(text, icon, isHTML = false) {
         });
     });
     
-    closeButton.addEventListener('click', () => {
+    closeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         if (popup.parentNode) {
             popup.style.opacity = '0';
             popup.style.transform = 'scale(0.8) translateY(10px)';
             setTimeout(() => {
-                if (popup.parentNode) {
-                    document.body.removeChild(popup);
+        if (popup.parentNode) {
+            document.body.removeChild(popup);
                     document.removeEventListener('click', handleOutsideClick);
-                    // Сбрасываем флаг открытого окна перевода
-                    isTranslationWindowOpen = false;
+                    // Проверяем, есть ли еще незакрепленные окна
+                    checkForUnpinnedWindows();
                 }
             }, 200);
         }
