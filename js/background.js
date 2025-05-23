@@ -54,13 +54,15 @@ async function getSettings() {
 }
 
 // Функция для перевода через DeepSeek
-async function translateWithDeepSeek(text, sourceLang, targetLang, apiKey) {
+async function translateWithDeepSeek(text, sourceLang, targetLang, apiKey, isHTML = false) {
     try {
-        console.log('Starting DeepSeek translation', { text, sourceLang, targetLang });
+        console.log('Starting DeepSeek translation', { text, sourceLang, targetLang, isHTML });
         
-        const systemPrompt = "Ты — опытный переводчик, специализирующийся на живом и естественном языке. Твоя задача — переводить текст, максимально сохраняя его смысл, стиль и нюансы, включая идиомы, сленг и устойчивые выражения. Адаптируй перевод так, чтобы он звучал естественно на целевом языке. При этом, не добавляй никаких комментариев, объяснений или информации, выходящей за рамки самого переведенного текста.";
+        const systemPrompt = isHTML 
+            ? "Переводи HTML текст точно, сохраняя всю HTML разметку, теги, форматирование, структуру и стиль. Переводи только текстовое содержимое внутри тегов, но сохраняй все HTML теги без изменений. Отвечай только переведенным HTML."
+            : "Переводи текст точно, сохраняя оригинальное форматирование, разметку, структуру и стиль. Если текст содержит жирный шрифт, заголовки или особое форматирование - сохраняй их в переводе. Отвечай только переводом.";
         
-        const userPrompt = `Переведи следующий текст на ${targetLang}. Предоставь только перевод, ничего больше: "${text}"`;
+        const userPrompt = `На ${targetLang}: ${text}`;
 
         const response = await fetch(DEEPSEEK_API_URL, {
             method: 'POST',
@@ -73,7 +75,9 @@ async function translateWithDeepSeek(text, sourceLang, targetLang, apiKey) {
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
                 ],
-                model: 'deepseek-chat'
+                model: 'deepseek-chat',
+                max_tokens: 500, // Увеличиваем для HTML
+                temperature: 0.3
             })
         });
 
@@ -90,13 +94,15 @@ async function translateWithDeepSeek(text, sourceLang, targetLang, apiKey) {
 }
 
 // Функция для перевода через OpenRouter
-async function translateWithOpenRouter(text, sourceLang, targetLang, apiKey, model) {
+async function translateWithOpenRouter(text, sourceLang, targetLang, apiKey, model, isHTML = false) {
     try {
-        console.log('Starting OpenRouter translation', { text, sourceLang, targetLang, model });
+        console.log('Starting OpenRouter translation', { text, sourceLang, targetLang, model, isHTML });
         
-        const systemPrompt = "Ты — опытный переводчик, специализирующийся на живом и естественном языке. Твоя задача — переводить текст, максимально сохраняя его смысл, стиль и нюансы, включая идиомы, сленг и устойчивые выражения. Адаптируй перевод так, чтобы он звучал естественно на целевом языке. При этом, не добавляй никаких комментариев, объяснений или информации, выходящей за рамки самого переведенного текста.";
+        const systemPrompt = isHTML 
+            ? "Переводи HTML текст точно, сохраняя всю HTML разметку, теги, форматирование, структуру и стиль. Переводи только текстовое содержимое внутри тегов, но сохраняй все HTML теги без изменений. Отвечай только переведенным HTML."
+            : "Переводи текст точно, сохраняя оригинальное форматирование, разметку, структуру и стиль. Если текст содержит жирный шрифт, заголовки или особое форматирование - сохраняй их в переводе. Отвечай только переводом.";
         
-        const userPrompt = `Переведи следующий текст на ${targetLang}. Предоставь только перевод, ничего больше: "${text}"`;
+        const userPrompt = `На ${targetLang}: ${text}`;
 
         const response = await fetch(OPENROUTER_API_URL, {
             method: 'POST',
@@ -109,7 +115,9 @@ async function translateWithOpenRouter(text, sourceLang, targetLang, apiKey, mod
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
                 ],
-                model: model
+                model: model,
+                max_tokens: 500, // Увеличиваем для HTML
+                temperature: 0.3
             })
         });
 
@@ -125,21 +133,72 @@ async function translateWithOpenRouter(text, sourceLang, targetLang, apiKey, mod
     }
 }
 
+// Функция для перевода через ChatGPT (OpenAI)
+async function translateWithChatGPT(text, sourceLang, targetLang, apiKey, model, isHTML = false) {
+    try {
+        console.log('Starting ChatGPT translation', { text, sourceLang, targetLang, model, isHTML });
+        
+        const systemPrompt = isHTML 
+            ? "Переводи HTML текст точно, сохраняя всю HTML разметку, теги, форматирование, структуру и стиль. Переводи только текстовое содержимое внутри тегов, но сохраняй все HTML теги без изменений. Отвечай только переведенным HTML."
+            : "Переводи текст точно, сохраняя оригинальное форматирование, разметку, структуру и стиль. Если текст содержит жирный шрифт, заголовки или особое форматирование - сохраняй их в переводе. Отвечай только переводом.";
+            
+        const userPrompt = `На ${targetLang}: ${text}`;
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                model: model,
+                max_tokens: 500, // Увеличиваем для HTML
+                temperature: 0.3
+            })
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(`OpenAI API error: ${response.status} ${errData.error?.message || ''}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    } catch (error) {
+        await log(LOG_LEVELS.ERROR, 'ChatGPT translation error', { error: error.message });
+        throw error;
+    }
+}
+
 // Обработчик сообщений
 browserAPI.runtime.onMessage.addListener((message, sender) => {
-    console.log('Received message:', message);
+    console.log('[DEBUG] Получено сообщение в background.js:', message);
     if (message.action === 'translate') {
+        console.log('[DEBUG] Обрабатываем запрос на перевод');
         // Возвращаем Promise для правильной обработки асинхронных ответов
         return (async () => {
             try {
                 const settings = await getSettings();
-                const { text, sourceLang = 'auto', targetLang = settings.defaultTargetLanguage || 'Русский' } = message;
+                console.log('[DEBUG] Получены настройки:', settings);
                 
+                const { text, sourceLang = 'auto', targetLang = settings.defaultTargetLanguage || 'Русский', isHTML = false } = message;
                 // Провайдер может быть передан в сообщении или взят из настроек
                 const provider = message.provider || settings.defaultProvider || 'deepseek';
                 
-                await log(LOG_LEVELS.INFO, 'Translation request received', { text, provider });
-                console.log('Translation settings:', { provider, sourceLang, targetLang });
+                console.log('[DEBUG] Параметры перевода:', { 
+                    text, 
+                    sourceLang, 
+                    targetLang, 
+                    provider, 
+                    model: message.model,
+                    isHTML
+                });
+                
+                await log(LOG_LEVELS.INFO, 'Translation request received', { text, provider, isHTML });
                 
                 let translatedText;
                 if (provider === 'deepseek') {
@@ -150,7 +209,8 @@ browserAPI.runtime.onMessage.addListener((message, sender) => {
                         text,
                         sourceLang,
                         targetLang,
-                        settings.deepseekApiKey
+                        settings.deepseekApiKey,
+                        isHTML
                     );
                 } else if (provider === 'openrouter') {
                     if (!settings.openrouterApiKey) {
@@ -161,19 +221,48 @@ browserAPI.runtime.onMessage.addListener((message, sender) => {
                         sourceLang,
                         targetLang,
                         settings.openrouterApiKey,
-                        message.model || settings.defaultModel || 'mistralai/mistral-7b-instruct'
+                        message.model || settings.defaultModel || 'mistralai/mistral-7b-instruct',
+                        isHTML
+                    );
+                } else if (provider === 'chatgpt') {
+                    // Новый провайдер ChatGPT (OpenAI)
+                    const apiKey = (await browserAPI.storage.local.get('chatgptApiKey')).chatgptApiKey;
+                    if (!apiKey) {
+                        throw new Error('OpenAI API key not set');
+                    }
+
+                    const allowedModels = ['gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-3.5-turbo'];
+                    const requestedModel = message.model || 'gpt-4.1-nano'; // Default is gpt-4.1-nano
+
+                    if (!allowedModels.includes(requestedModel)) {
+                        throw new Error(`Model ${requestedModel} is not supported for ChatGPT. Supported models are: ${allowedModels.join(', ')}`);
+                    }
+
+                    translatedText = await translateWithChatGPT(
+                        text,
+                        sourceLang,
+                        targetLang,
+                        apiKey,
+                        requestedModel,
+                        isHTML
                     );
                 } else {
                     throw new Error('Invalid provider selected');
                 }
 
-                console.log('Translation result:', translatedText);
-                await log(LOG_LEVELS.INFO, 'Translation completed', { translatedText });
-                return { success: true, translatedText };
+                console.log('[DEBUG] Результат перевода:', translatedText);
+                await log(LOG_LEVELS.INFO, 'Translation completed', { translatedText, isHTML });
+                
+                const response = { success: true, translatedText, isHTML };
+                console.log('[DEBUG] Отправляем ответ в popup.js:', response);
+                return response;
             } catch (error) {
-                console.error('Translation error:', error);
+                console.error('[DEBUG] Ошибка перевода:', error);
                 await log(LOG_LEVELS.ERROR, 'Translation failed', { error: error.message });
-                return { success: false, error: error.message };
+                
+                const errorResponse = { success: false, error: error.message };
+                console.log('[DEBUG] Отправляем ошибку в popup.js:', errorResponse);
+                return errorResponse;
             }
         })();
     }

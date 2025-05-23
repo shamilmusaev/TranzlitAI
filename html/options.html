@@ -7,7 +7,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Настройки SmartTranslate LLM</h1>
+        <h1>Настройки TranzlitAI</h1>
 
         <div class="tabs">
             <button class="tab-button active" data-tab="api-keys">API Ключи</button>
@@ -35,6 +35,15 @@
                     </div>
                     <div id="openrouterStatus" class="status"></div>
                 </div>
+
+                <div class="api-section">
+                    <h2>OpenAI API (ChatGPT)</h2>
+                    <div class="input-group">
+                        <input type="password" id="chatgptApiKey" placeholder="Введите API ключ OpenAI">
+                        <button id="saveChatgptKey" class="save-button">Сохранить</button>
+                    </div>
+                    <div id="chatgptStatus" class="status"></div>
+                </div>
             </div>
 
             <!-- Вкладка Настройки перевода -->
@@ -49,6 +58,10 @@
                         <label>
                             <input type="radio" name="defaultProvider" value="openrouter">
                             OpenRouter
+                        </label>
+                        <label>
+                            <input type="radio" name="defaultProvider" value="chatgpt">
+                            ChatGPT
                         </label>
                     </div>
                 </div>

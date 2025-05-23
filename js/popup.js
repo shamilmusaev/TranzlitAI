@@ -8,31 +8,64 @@ const targetLanguage = document.getElementById('targetLanguage');
 const swapLanguagesButton = document.getElementById('swapLanguagesButton'); // Новая кнопка
 const deepseekButton = document.getElementById('deepseekButton'); // Новая кнопка
 const openrouterButton = document.getElementById('openrouterButton'); // Новая кнопка
-const providerButtons = [deepseekButton, openrouterButton]; // Массив кнопок провайдеров
+const chatgptButton = document.getElementById('chatgptButton'); // Новая кнопка для ChatGPT
+const providerButtons = [deepseekButton, openrouterButton, chatgptButton]; // Массив кнопок провайдеров
 const openrouterModelContainer = document.getElementById('openrouterModelContainer');
+const chatgptContainer = document.getElementById('chatgptContainer'); // Новый контейнер для ChatGPT
+const chatgptModelSelect = document.getElementById('chatgptModelSelect'); // Селектор моделей ChatGPT
 const translateButton = document.getElementById('translateButton');
 const translatedText = document.getElementById('translatedText');
 const copyButton = document.getElementById('copyButton');
-const loadingIndicator = document.querySelector('.loading-indicator'); // Убедимся, что класс .loading-indicator еще используется или обновим
+const pasteButton = document.getElementById('pasteButton'); // Новая кнопка paste
 const settingsButton = document.getElementById('settingsButton'); // Новая кнопка настроек
 
-// Новые элементы для управления моделями OpenRouter
+// Элементы для управления моделями OpenRouter
 const openrouterModelInput = document.getElementById('openrouterModelInput');
 const openrouterModelDropdown = document.getElementById('openrouterModelDropdown');
 const openrouterModelDropdownArrow = document.getElementById('openrouterModelDropdownArrow'); 
 let openRouterModels = [];
 let selectedOpenRouterModel = '';
 let currentProvider = 'deepseek'; // Провайдер по умолчанию
+let selectedChatGPTModel = 'gpt-4.1-nano'; // Модель ChatGPT по умолчанию
+
+// Массив актуальных моделей ChatGPT
+const chatgptModels = [
+  { value: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
+  { value: 'gpt-4.1-nano', label: 'GPT-4.1 Nano' },
+  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+];
+
+// Функция для заполнения <select> опциями
+function renderChatGPTModels() {
+  // Очищаем старые опции
+  chatgptModelSelect.innerHTML = '';
+
+  chatgptModels.forEach(({ value, label }) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    // Выбираем опцию по умолчанию
+    if (value === selectedChatGPTModel) {
+      option.selected = true;
+    }
+    chatgptModelSelect.appendChild(option);
+  });
+}
 
 // Загрузка настроек и моделей при открытии popup
 document.addEventListener('DOMContentLoaded', async () => {
+    // Рендерим модели ChatGPT
+    renderChatGPTModels();
+    
     const data = await browserAPI.storage.local.get([
         'defaultProvider',
         'defaultTargetLanguage',
         'openRouterModels',
         'selectedOpenRouterModel',
+        'selectedChatGPTModel', // Добавляем сохраненную модель ChatGPT
         'sourceLanguage',
-        'targetLanguage' // Загружаем сохраненные языки
+        'targetLanguage',
+        'chatgptApiKey' // Добавляем API ключ для ChatGPT
     ]);
 
     // Устанавливаем значения по умолчанию для провайдера
@@ -42,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateProviderUI(currentProvider);
     setActiveProviderButton(currentProvider);
 
+    // Загружаем модели OpenRouter
     if (data.openRouterModels) {
         openRouterModels = data.openRouterModels;
     }
@@ -53,17 +87,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         openrouterModelInput.value = selectedOpenRouterModel;
     }
 
-    if (data.sourceLanguage) { // Загружаем сохраненный исходный язык
+    // Загружаем выбранную модель ChatGPT
+    if (data.selectedChatGPTModel) {
+        selectedChatGPTModel = data.selectedChatGPTModel;
+        // Обновляем селектор с учетом сохраненной модели
+        renderChatGPTModels();
+    }
+
+    // Загружаем настройки языков
+    if (data.sourceLanguage) {
         sourceLanguage.value = data.sourceLanguage;
     }
-    if (data.defaultTargetLanguage) { // Используем defaultTargetLanguage для целевого языка
+    if (data.defaultTargetLanguage) {
         targetLanguage.value = data.defaultTargetLanguage;
     }
-    // Если в хранилище есть targetLanguage (старое название), используем его, если нет defaultTargetLanguage
     else if (data.targetLanguage) {
         targetLanguage.value = data.targetLanguage;
     }
-
 
     renderOpenRouterModels();
 });
@@ -91,7 +131,16 @@ function setActiveProviderButton(provider) {
 
 // Обновление UI в зависимости от выбранного провайдера
 function updateProviderUI(provider) {
-    openrouterModelContainer.style.display = provider === 'openrouter' ? 'block' : 'none';
+    // Скрываем все контейнеры сначала
+    openrouterModelContainer.style.display = 'none';
+    chatgptContainer.style.display = 'none';
+    
+    // Показываем только нужный контейнер
+    if (provider === 'openrouter') {
+        openrouterModelContainer.style.display = 'block';
+    } else if (provider === 'chatgpt') {
+        chatgptContainer.style.display = 'block';
+    }
 }
 
 // Сохранение выбранных языков
@@ -112,7 +161,7 @@ swapLanguagesButton.addEventListener('click', () => {
         // Можно добавить уведомление пользователю
         console.warn("Cannot swap 'auto' with target language. Please select a specific source language first.");
         return;
-    }
+}
 
     sourceLanguage.value = targetLangValue;
     targetLanguage.value = sourceLangValue;
@@ -144,8 +193,14 @@ settingsButton.addEventListener('click', () => {
                     <button class="close-button">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <!-- Настройки будут добавлены здесь -->
-                    <div class="settings-section">
+                    <div class="settings-tabs">
+                        <button class="tab-button active" data-tab="general">Основные</button>
+                        <button class="tab-button" data-tab="api">API ключи</button>
+                        <button class="tab-button" data-tab="logs">Логи</button>
+                    </div>
+                    
+                    <!-- Основные настройки -->
+                    <div class="settings-section active" id="general-tab">
                         <h3>Основные настройки</h3>
                         <div class="settings-option">
                             <label for="defaultTargetLanguage">Язык перевода по умолчанию:</label>
@@ -156,7 +211,9 @@ settingsButton.addEventListener('click', () => {
                             </select>
                         </div>
                     </div>
-                    <div class="settings-section">
+                    
+                    <!-- API настройки -->
+                    <div class="settings-section" id="api-tab">
                         <h3>API настройки</h3>
                         <div class="settings-option">
                             <label for="deepseekApiKey">DeepSeek API ключ:</label>
@@ -165,6 +222,24 @@ settingsButton.addEventListener('click', () => {
                         <div class="settings-option">
                             <label for="openrouterApiKey">OpenRouter API ключ:</label>
                             <input type="password" id="openrouterApiKey" placeholder="Введите API ключ">
+                        </div>
+                        <div class="settings-option">
+                            <label for="chatgptApiKey">OpenAI API ключ:</label>
+                            <input type="password" id="chatgptApiKey" placeholder="Введите API ключ">
+                        </div>
+                    </div>
+                    
+                    <!-- Логи -->
+                    <div class="settings-section" id="logs-tab">
+                        <h3>Логи</h3>
+                        <div class="logs-container">
+                            <div class="logs-header">
+                                <button id="clearLogsButton" class="clear-logs-button">Очистить логи</button>
+                                <button id="refreshLogsButton" class="refresh-logs-button">Обновить</button>
+                            </div>
+                            <div id="logsContent" class="logs-content">
+                                <p class="loading-logs">Загрузка логов...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -190,12 +265,14 @@ settingsButton.addEventListener('click', () => {
             const defaultTargetLanguage = settingsModal.querySelector('#defaultTargetLanguage').value;
             const deepseekApiKey = settingsModal.querySelector('#deepseekApiKey').value;
             const openrouterApiKey = settingsModal.querySelector('#openrouterApiKey').value;
+            const chatgptApiKey = settingsModal.querySelector('#chatgptApiKey').value;
             
             // Сохраняем в хранилище
             await browserAPI.storage.local.set({
                 defaultTargetLanguage,
                 deepseekApiKey,
-                openrouterApiKey
+                openrouterApiKey,
+                chatgptApiKey
             });
             
             // Закрываем модальное окно после сохранения
@@ -212,7 +289,8 @@ settingsButton.addEventListener('click', () => {
             const data = await browserAPI.storage.local.get([
                 'defaultTargetLanguage',
                 'deepseekApiKey',
-                'openrouterApiKey'
+                'openrouterApiKey',
+                'chatgptApiKey'
             ]);
             
             if (data.defaultTargetLanguage) {
@@ -224,7 +302,101 @@ settingsButton.addEventListener('click', () => {
             if (data.openrouterApiKey) {
                 settingsModal.querySelector('#openrouterApiKey').value = data.openrouterApiKey;
             }
+            if (data.chatgptApiKey) {
+                settingsModal.querySelector('#chatgptApiKey').value = data.chatgptApiKey;
+            }
         })();
+        
+        // Обработчик для табов настроек
+        const tabButtons = settingsModal.querySelectorAll('.tab-button');
+        const settingsSections = settingsModal.querySelectorAll('.settings-section');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Удаляем активный класс у всех кнопок и секций
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                settingsSections.forEach(section => section.classList.remove('active'));
+                
+                // Добавляем активный класс текущей кнопке
+                button.classList.add('active');
+                
+                // Показываем соответствующую секцию
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+                
+                // Если выбрана вкладка логов, загружаем их
+                if (tabId === 'logs') {
+                    loadLogs();
+                }
+            });
+        });
+        
+        // Функция загрузки логов
+        async function loadLogs() {
+            const logsContent = document.getElementById('logsContent');
+            logsContent.innerHTML = '<p class="loading-logs">Загрузка логов...</p>';
+            
+            try {
+                const result = await browserAPI.storage.local.get('logs');
+                const logs = result.logs ? result.logs : [];
+                
+                if (logs.length === 0) {
+                    logsContent.innerHTML = '<p class="no-logs">Логи отсутствуют</p>';
+                    return;
+                }
+                
+                // Форматируем логи
+                let logsHtml = '<div class="logs-list">';
+                logs.forEach(logEntry => {
+                    const timestamp = new Date(logEntry.timestamp).toLocaleString();
+                    const level = logEntry.level;
+                    const message = logEntry.message;
+                    const data = JSON.stringify(logEntry.data, null, 2);
+                    
+                    // Выбираем класс в зависимости от уровня лога
+                    let levelClass = 'log-level-info';
+                    if (level === 'ERROR') levelClass = 'log-level-error';
+                    if (level === 'WARNING') levelClass = 'log-level-warning';
+                    if (level === 'DEBUG') levelClass = 'log-level-debug';
+                    
+                    logsHtml += `
+                        <div class="log-entry ${levelClass}">
+                            <div class="log-timestamp">${timestamp}</div>
+                            <div class="log-level">${level}</div>
+                            <div class="log-message">${message}</div>
+                            <div class="log-data">${data}</div>
+                        </div>
+                    `;
+                });
+                logsHtml += '</div>';
+                
+                logsContent.innerHTML = logsHtml;
+            } catch (error) {
+                console.error('Ошибка загрузки логов:', error);
+                logsContent.innerHTML = `<p class="logs-error">Ошибка загрузки логов: ${error.message}</p>`;
+            }
+        }
+        
+        // Обработчик для кнопки очистки логов
+        const clearLogsButton = settingsModal.querySelector('#clearLogsButton');
+        clearLogsButton.addEventListener('click', async () => {
+            if (confirm('Вы уверены, что хотите очистить все логи?')) {
+                try {
+                    await browserAPI.storage.local.set({ logs: [] });
+                    loadLogs(); // Перезагружаем (пустые) логи
+                    alert('Логи успешно очищены');
+                } catch (error) {
+                    console.error('Ошибка очистки логов:', error);
+                    alert(`Ошибка очистки логов: ${error.message}`);
+                }
+            }
+        });
+        
+        // Обработчик для кнопки обновления логов
+        const refreshLogsButton = settingsModal.querySelector('#refreshLogsButton');
+        refreshLogsButton.addEventListener('click', () => {
+            loadLogs();
+        });
     } else {
         // Модальное окно уже существует, просто показываем его
         // Обновляем сохраненные настройки перед показом
@@ -232,7 +404,8 @@ settingsButton.addEventListener('click', () => {
             const data = await browserAPI.storage.local.get([
                 'defaultTargetLanguage',
                 'deepseekApiKey',
-                'openrouterApiKey'
+                'openrouterApiKey',
+                'chatgptApiKey'
             ]);
             
             if (data.defaultTargetLanguage) {
@@ -243,6 +416,9 @@ settingsButton.addEventListener('click', () => {
             }
             if (data.openrouterApiKey) {
                 settingsModal.querySelector('#openrouterApiKey').value = data.openrouterApiKey;
+            }
+            if (data.chatgptApiKey) {
+                settingsModal.querySelector('#chatgptApiKey').value = data.chatgptApiKey;
             }
         })();
     }
@@ -251,13 +427,8 @@ settingsButton.addEventListener('click', () => {
     settingsModal.style.display = 'block';
 });
 
-// Закрытие модального окна при клике вне его
-document.addEventListener('click', (event) => {
-    const settingsModal = document.getElementById('settingsModal');
-    if (settingsModal && event.target === settingsModal) {
-        settingsModal.style.display = 'none';
-    }
-});
+// Убираем закрытие модального окна по клику вне элемента
+// Теперь модальное окно закрывается только по кнопке "X" или "Сохранить"
 
 // --- Логика управления моделями OpenRouter ---
 
@@ -410,26 +581,63 @@ openrouterModelInput.addEventListener('input', async () => {
 
 // --- Конец логики управления моделями OpenRouter ---
 
-// --- Логика перевода (адаптируем получение провайдера) ---
+// --- Логика перевода (адаптируем для поддержки ChatGPT) ---
 async function translate() {
     const text = sourceText.value.trim();
-    if (!text) return;
+    console.log('[DEBUG] Исходный текст для перевода:', text);
+    if (!text) {
+        console.warn('[DEBUG] Текст пустой, перевод не выполняется');
+        return;
+    }
 
-    let provider = currentProvider; // Используем currentProvider
+    let provider = currentProvider;
     let model = '';
+    console.log('[DEBUG] Выбранный провайдер:', provider);
 
+    // Определяем, какую модель использовать в зависимости от провайдера
     if (provider === 'openrouter') {
         model = selectedOpenRouterModel;
+        console.log('[DEBUG] OpenRouter модель:', model);
         if (!model) {
-            alert('Пожалуйста, выберите или введите модель OpenRouter.');
+            showMessage('Пожалуйста, выберите или введите модель OpenRouter.', 'error');
             return;
+        }
+    } else if (provider === 'chatgpt') {
+        model = selectedChatGPTModel;
+        console.log('[DEBUG] ChatGPT модель:', model);
+        
+        // Проверяем, есть ли API ключ для ChatGPT
+        const data = await browserAPI.storage.local.get(['chatgptApiKey']);
+        if (!data.chatgptApiKey) {
+            console.error('[DEBUG] API ключ для ChatGPT не установлен');
+            showMessage('Пожалуйста, добавьте API ключ для ChatGPT в настройках.', 'error');
+            // Открываем модальное окно настроек
+            settingsButton.click();
+            return;
+        } else {
+            console.log('[DEBUG] API ключ для ChatGPT установлен');
         }
     }
 
-    loadingIndicator.style.display = 'flex';
+    console.log('[DEBUG] Начинаем перевод');
+    translateButton.classList.add('loading');
+    translateButton.disabled = true;
+    translateButton.textContent = 'Переводим...';
+    
+    // Очищаем поле результата
     translatedText.value = '';
+    translatedText.innerHTML = '';
 
     try {
+        console.log('[DEBUG] Отправляем запрос на перевод в background.js:', {
+            action: 'translate',
+            text: text,
+            sourceLang: sourceLanguage.value,
+            targetLang: targetLanguage.value,
+            provider: provider,
+            model: model
+        });
+        
         const response = await browserAPI.runtime.sendMessage({
             action: 'translate',
             text: text,
@@ -439,40 +647,117 @@ async function translate() {
             model: model
         });
 
-        if (response.error) {
+        console.log('[DEBUG] Получен ответ от background.js:', response);
+
+        if (response && response.success === false && response.error) {
+            console.error('[DEBUG] Ошибка перевода:', response.error);
             translatedText.value = `Ошибка: ${response.error}`;
-            console.error('Translation error:', response.errorDetails);
+        } else if (response && response.success === true && response.translatedText) {
+            console.log('[DEBUG] Перевод успешно получен:', response.translatedText);
+            console.log('[DEBUG] Is HTML response:', response.isHTML);
+            
+            if (response.isHTML) {
+                // Если это HTML, устанавливаем innerHTML и убираем стандартные стили textarea
+                translatedText.style.whiteSpace = 'normal';
+                translatedText.style.fontFamily = 'inherit';
+                translatedText.innerHTML = response.translatedText;
+                translatedText.setAttribute('data-html', 'true');
+                // Также устанавливаем value для обратной совместимости с копированием
+                translatedText.value = response.translatedText;
+            } else {
+                // Обычный текст
+                translatedText.style.whiteSpace = '';
+                translatedText.style.fontFamily = '';
+            translatedText.value = response.translatedText;
+                translatedText.innerHTML = '';
+                translatedText.removeAttribute('data-html');
+            }
         } else {
-            translatedText.value = response.translation;
+            console.error('[DEBUG] Получен некорректный ответ от background.js:', response);
+            translatedText.value = 'Ошибка: Некорректный ответ от сервера';
         }
     } catch (err) {
-        console.error('Error sending message to background:', err);
+        console.error('[DEBUG] Ошибка при отправке сообщения в background.js:', err);
         translatedText.value = `Ошибка связи с фоновым скриптом: ${err.message}`;
+    } finally {
+        console.log('[DEBUG] Завершаем перевод');
+        translateButton.classList.remove('loading');
+        translateButton.disabled = false;
+        translateButton.textContent = 'Перевести';
     }
-
-    loadingIndicator.style.display = 'none';
 }
 
 translateButton.addEventListener('click', translate);
 
 // --- Логика копирования (проверяем, что работает как ожидается) ---
+// Функция для показа сообщений пользователю
+function showMessage(text, type = 'info', duration = 3000) {
+    const messageArea = document.getElementById('messageArea');
+    const messageText = document.getElementById('messageText');
+    
+    if (messageArea && messageText) {
+        messageText.textContent = text;
+        messageArea.className = `message-area ${type}`;
+        messageArea.style.display = 'block';
+        
+        // Автоматически скрываем сообщение через указанное время
+        setTimeout(() => {
+            messageArea.style.display = 'none';
+        }, duration);
+    }
+}
+
+// Обработчик кнопки paste
+pasteButton.addEventListener('click', async () => {
+    try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+            sourceText.value = text;
+            // Визуальная обратная связь
+            const originalButtonContent = pasteButton.innerHTML;
+            pasteButton.innerHTML = '<img src="../icons/check-icon.svg" alt="Pasted">';
+            setTimeout(() => {
+                pasteButton.innerHTML = originalButtonContent;
+            }, 1500);
+            // Убрали сообщение об успешной вставке
+        } else {
+            showMessage('Буфер обмена пуст.', 'error');
+        }
+    } catch (err) {
+        console.error('Ошибка вставки:', err);
+        showMessage('Не удалось вставить текст из буфера обмена. Проверьте разрешения браузера.', 'error');
+    }
+});
+
 copyButton.addEventListener('click', () => {
-    if (translatedText.value) {
-        navigator.clipboard.writeText(translatedText.value)
+    const isHTML = translatedText.hasAttribute('data-html');
+    let textToCopy;
+    
+    if (isHTML && translatedText.innerHTML) {
+        // Для HTML получаем простой текст для лучшей совместимости
+        textToCopy = translatedText.textContent || translatedText.innerText || translatedText.value;
+    } else {
+        // Для обычного текста
+        textToCopy = translatedText.value;
+    }
+    
+    if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy)
             .then(() => {
-                // Можно добавить визуальную обратную связь (например, текст "Скопировано!")
                 console.log('Перевод скопирован в буфер обмена');
-                 // Просто для примера, можно сделать более заметное уведомление
                 const originalButtonContent = copyButton.innerHTML;
-                copyButton.innerHTML = '<img src="../icons/check-icon.svg" alt="Copied">'; // Предполагаем, что есть check-icon.svg
-                setTimeout(() => {
+                copyButton.innerHTML = '<img src="../icons/check-icon.svg" alt="Copied">';
+    setTimeout(() => {
                     copyButton.innerHTML = originalButtonContent;
                 }, 1500);
+                // Убрали сообщение об успешном копировании
             })
             .catch(err => {
                 console.error('Ошибка копирования:', err);
-                alert('Не удалось скопировать текст.');
+                showMessage('Не удалось скопировать текст.', 'error');
             });
+    } else {
+        showMessage('Нет текста для копирования.', 'error');
     }
 });
 
@@ -481,15 +766,8 @@ targetLanguage.addEventListener('change', async () => {
     await browserAPI.storage.local.set({ defaultTargetLanguage: targetLanguage.value });
 });
 
-// Удаляем старый слушатель для openrouterModel, так как элемент удален
-// openrouterModel.addEventListener('change', async () => {
-// await browserAPI.storage.local.set({ defaultModel: openrouterModel.value });
-// });
-
-// Слушатель для defaultProvider уже есть и он корректен
-// providerRadios.forEach(radio => {
-// radio.addEventListener('change', async (e) => {
-// await browserAPI.storage.local.set({ defaultProvider: e.target.value });
-// });
-// }); 
-// }); 
+// Сохранение выбранной модели ChatGPT при изменении
+chatgptModelSelect.addEventListener('change', () => {
+    selectedChatGPTModel = chatgptModelSelect.value;
+    browserAPI.storage.local.set({ selectedChatGPTModel });
+});

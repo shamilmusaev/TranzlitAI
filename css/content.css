@@ -1,64 +1,500 @@
 .smart-translate-trigger {
     position: absolute;
-    background: rgba(157, 145, 145, 0.9);
-    color: #222;
-    border: none;
+    background: rgba(44, 44, 58, 0.95);
+    color: #FFFFFF;
+    border: 2px solid transparent;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    box-shadow: 
+        0 0 10px rgba(107, 115, 255, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.4);
     z-index: 10000;
-    font-size: 18px;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
 .smart-translate-trigger:hover {
-    background-color: rgba(147, 135, 135, 0.95);
-    transform: scale(1.1);
+    background: rgba(44, 44, 58, 1);
+    border-color: #6B73FF;
+    box-shadow: 
+        0 0 20px rgba(107, 115, 255, 0.7),
+        0 0 35px rgba(199, 107, 255, 0.4),
+        0 4px 25px rgba(0, 0, 0, 0.6);
+    transform: scale(1.15) translateY(-2px);
 }
 
 .smart-translate-trigger:active {
-    transform: scale(0.95);
+    transform: scale(1.05) translateY(0px);
+    transition: all 0.1s ease;
+}
+
+.smart-translate-trigger img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(107, 115, 255, 0.6));
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smart-translate-trigger:hover img {
+    filter: 
+        drop-shadow(0 0 12px rgba(107, 115, 255, 0.9))
+        drop-shadow(0 0 20px rgba(199, 107, 255, 0.6));
+    transform: rotate(10deg) scale(1.1);
+}
+
+.smart-translate-trigger.loading {
+    animation: neonPulse 1.5s ease-in-out infinite;
+    border: 2px solid #6B73FF;
+    background: linear-gradient(45deg, rgba(107, 115, 255, 0.2), rgba(199, 107, 255, 0.2));
+    pointer-events: none;
+}
+
+.smart-translate-trigger.loading img {
+    animation: logoGlow 2s ease-in-out infinite;
+}
+
+@keyframes neonPulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 10px rgba(107, 115, 255, 0.4),
+            0 0 20px rgba(199, 107, 255, 0.3),
+            0 4px 15px rgba(0, 0, 0, 0.4);
+        border-color: #6B73FF;
+    }
+    50% {
+        box-shadow: 
+            0 0 25px rgba(107, 115, 255, 0.8),
+            0 0 40px rgba(199, 107, 255, 0.6),
+            0 0 60px rgba(107, 115, 255, 0.4),
+            0 4px 25px rgba(0, 0, 0, 0.5);
+        border-color: #C76BFF;
+    }
+}
+
+@keyframes logoGlow {
+    0%, 100% {
+        filter: 
+            drop-shadow(0 0 5px rgba(107, 115, 255, 0.6))
+            drop-shadow(0 0 10px rgba(199, 107, 255, 0.3));
+    }
+    50% {
+        filter: 
+            drop-shadow(0 0 15px rgba(107, 115, 255, 1))
+            drop-shadow(0 0 25px rgba(199, 107, 255, 0.8))
+            drop-shadow(0 0 35px rgba(107, 115, 255, 0.5));
+    }
 }
 
 #smart-translate-popup {
     position: fixed;
-    background: rgba(157, 145, 145, 0.9);
-    padding: 15px 20px;
-    border-radius: 0px;
-    border: none;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    background: rgba(44, 44, 58, 0.98);
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 
+        0 0 20px rgba(107, 115, 255, 0.3),
+        0 0 40px rgba(199, 107, 255, 0.2),
+        0 15px 35px rgba(0, 0, 0, 0.4);
     z-index: 9999;
-    min-width: 150px;
-    max-width: 60%;
-    font-family: 'Arial', sans-serif;
+    min-width: 200px;
+    max-width: 600px;
+    min-height: 120px;
+    max-height: 500px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 14px;
-    line-height: 1.4;
-    color: #222;
-    backdrop-filter: blur(5px);
+    line-height: 1.5;
+    color: #FFFFFF;
+    backdrop-filter: blur(15px);
+    animation: popupAppear 0.3s ease-out;
+    overflow: hidden;
 }
 
-#smart-translate-popup button {
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
+/* Кастомные resize handles для лучшего контроля */
+#smart-translate-popup::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, rgba(107, 115, 255, 0.6), rgba(199, 107, 255, 0.6), rgba(107, 115, 255, 0.6));
+    border-radius: 12px;
+    z-index: -1;
+    animation: borderGlow 4s ease-in-out infinite;
+}
+
+/* Эффект частиц - более реалистичный и менее яркий - перемещаем в отдельный элемент */
+.popup-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(1px 1px at 25px 35px, rgba(107, 115, 255, 0.15), transparent),
+        radial-gradient(1px 1px at 55px 75px, rgba(199, 107, 255, 0.12), transparent),
+        radial-gradient(0.5px 0.5px at 85px 45px, rgba(107, 115, 255, 0.18), transparent),
+        radial-gradient(0.5px 0.5px at 135px 85px, rgba(199, 107, 255, 0.14), transparent),
+        radial-gradient(1px 1px at 165px 25px, rgba(107, 115, 255, 0.13), transparent),
+        radial-gradient(0.5px 0.5px at 205px 65px, rgba(199, 107, 255, 0.16), transparent),
+        radial-gradient(0.5px 0.5px at 255px 15px, rgba(107, 115, 255, 0.12), transparent),
+        radial-gradient(1px 1px at 295px 55px, rgba(199, 107, 255, 0.11), transparent),
+        radial-gradient(0.5px 0.5px at 320px 90px, rgba(107, 115, 255, 0.14), transparent),
+        radial-gradient(0.5px 0.5px at 350px 30px, rgba(199, 107, 255, 0.13), transparent);
+    background-repeat: repeat;
+    background-size: 400px 120px;
+    animation: floatingParticles 25s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+    border-radius: 12px;
+}
+
+@keyframes floatingParticles {
+    0% {
+        transform: translateX(0) translateY(0);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translateX(-3px) translateY(2px);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateX(-8px) translateY(-1px);
+        opacity: 0.4;
+    }
+    75% {
+        transform: translateX(-5px) translateY(3px);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateX(-12px) translateY(-2px);
+        opacity: 0.3;
+    }
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px 0 20px;
+    position: relative;
+    z-index: 2;
+    user-select: none;
+}
+
+.popup-header:hover {
+    background: rgba(107, 115, 255, 0.05);
+    border-radius: 8px 8px 0 0;
+    transition: background 0.2s ease;
+}
+
+.popup-left-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.popup-pin-button,
+.popup-expand-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    font-size: 13px;
-    margin-right: 10px;
-    transition: background-color 0.2s;
+    padding: 8px;
+    border-radius: 8px;
+    background: rgba(107, 115, 255, 0.15);
+    border: 1px solid rgba(107, 115, 255, 0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    transform: scale(1);
 }
 
-#smart-translate-popup button:hover {
-    background-color: rgba(0, 0, 0, 0.8);
+.popup-pin-button:hover,
+.popup-expand-button:hover {
+    background: rgba(107, 115, 255, 0.25);
+    border-color: rgba(107, 115, 255, 0.5);
+    box-shadow: 
+        0 0 15px rgba(107, 115, 255, 0.3),
+        0 0 25px rgba(199, 107, 255, 0.2),
+        inset 0 0 10px rgba(107, 115, 255, 0.1);
+    transform: scale(1.05) translateY(-1px);
 }
 
-#smart-translate-popup button:last-child {
-    margin-right: 0;
+.popup-pin-button:active,
+.popup-expand-button:active {
+    transform: scale(0.95);
+    transition: all 0.1s ease;
+}
+
+.popup-pin-button.pinned {
+    background: rgba(107, 115, 255, 0.4);
+    border-color: rgba(107, 115, 255, 0.6);
+    box-shadow: 
+        0 0 12px rgba(107, 115, 255, 0.5),
+        0 0 20px rgba(199, 107, 255, 0.3),
+        inset 0 0 8px rgba(107, 115, 255, 0.2);
+    transform: scale(1.02);
+}
+
+.popup-pin-button img,
+.popup-expand-button img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 3px rgba(107, 115, 255, 0.3));
+}
+
+.popup-pin-button:hover img,
+.popup-expand-button:hover img {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(107, 115, 255, 0.6));
+    transform: rotate(5deg);
+}
+
+.popup-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.popup-action-button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 2;
+    transform: scale(1);
+}
+
+.popup-copy-button {
+    background: rgba(107, 115, 255, 0.1);
+    border: 1px solid rgba(107, 115, 255, 0.2);
+}
+
+.popup-copy-button:hover {
+    background: rgba(107, 115, 255, 0.3);
+    box-shadow: 
+        0 0 12px rgba(107, 115, 255, 0.4),
+        0 0 20px rgba(199, 107, 255, 0.2);
+    transform: scale(1.1) translateY(-2px);
+}
+
+.popup-close-button {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+.popup-close-button:hover {
+    background: rgba(255, 107, 107, 0.3);
+    box-shadow: 
+        0 0 12px rgba(255, 107, 107, 0.4),
+        0 0 20px rgba(255, 107, 107, 0.2);
+    transform: scale(1.1) translateY(-2px);
+}
+
+.popup-action-button:active {
+    transform: scale(0.9);
+    transition: all 0.1s ease;
+}
+
+.popup-action-button img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+.popup-action-button:hover img {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+}
+
+.popup-content {
+    padding: 15px 20px 20px 20px;
+    position: relative;
+    z-index: 2;
+}
+
+#smart-translate-popup .translation-text {
+    margin: 0;
+    padding: 12px;
+    background: rgba(59, 59, 77, 0.6);
+    border-radius: 8px;
+    border-left: 3px solid #6B73FF;
+    word-wrap: break-word;
+    min-height: 40px;
+    max-height: 180px;
+    overflow-y: auto;
+    transition: max-height 0.3s ease;
+}
+
+/* Кастомная полоса прокрутки */
+#smart-translate-popup .translation-text::-webkit-scrollbar {
+    width: 6px;
+}
+
+#smart-translate-popup .translation-text::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+#smart-translate-popup .translation-text::-webkit-scrollbar-thumb {
+    background: rgba(107, 115, 255, 0.6);
+    border-radius: 3px;
+}
+
+#smart-translate-popup .translation-text::-webkit-scrollbar-thumb:hover {
+    background: rgba(107, 115, 255, 0.8);
+}
+
+@keyframes popupAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes borderGlow {
+    0%, 100% {
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Стили для translation-text чтобы поддерживать HTML форматирование */
+.translation-text {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    font-family: inherit;
+    line-height: 1.4;
+    color: #FFFFFF !important;
+}
+
+/* Поддержка HTML форматирования в переводе */
+.translation-text *,
+.translation-text b,
+.translation-text strong {
+    color: #FFFFFF !important;
+}
+
+.translation-text b,
+.translation-text strong {
+    font-weight: bold;
+}
+
+.translation-text i,
+.translation-text em {
+    font-style: italic;
+    color: #FFFFFF !important;
+}
+
+.translation-text u {
+    text-decoration: underline;
+    color: #FFFFFF !important;
+}
+
+.translation-text h1,
+.translation-text h2,
+.translation-text h3,
+.translation-text h4,
+.translation-text h5,
+.translation-text h6 {
+    font-weight: bold;
+    margin: 0.5em 0;
+    color: #FFFFFF !important;
+}
+
+.translation-text h1 { font-size: 1.4em; }
+.translation-text h2 { font-size: 1.3em; }
+.translation-text h3 { font-size: 1.2em; }
+.translation-text h4 { font-size: 1.1em; }
+.translation-text h5 { font-size: 1.05em; }
+.translation-text h6 { font-size: 1em; }
+
+.translation-text p {
+    margin: 0.5em 0;
+    color: #FFFFFF !important;
+}
+
+.translation-text ul,
+.translation-text ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+    color: #FFFFFF !important;
+}
+
+.translation-text li {
+    margin: 0.2em 0;
+    color: #FFFFFF !important;
+}
+
+.translation-text br {
+    line-height: 1.4;
+}
+
+.translation-text code {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: monospace;
+    color: #FFFFFF !important;
+}
+
+.translation-text pre {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.5em;
+    border-radius: 5px;
+    overflow-x: auto;
+    white-space: pre;
+    color: #FFFFFF !important;
+}
+
+.translation-text a {
+    color: #6B73FF !important;
+    text-decoration: underline;
+}
+
+.translation-text a:hover {
+    color: #C76BFF !important;
+}
+
+/* Resize handle в правом нижнем углу */
+.popup-resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, transparent 50%, rgba(107, 115, 255, 0.4) 50%);
+    cursor: se-resize;
+    z-index: 10;
+    border-bottom-right-radius: 12px;
+    transition: background 0.3s ease;
+}
+
+.popup-resize-handle:hover {
+    background: linear-gradient(135deg, transparent 50%, rgba(107, 115, 255, 0.7) 50%);
+    cursor: se-resize;
 } 

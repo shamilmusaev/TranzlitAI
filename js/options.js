@@ -6,10 +6,13 @@ const tabButtons = document.querySelectorAll('.tab-button');
 const tabPanes = document.querySelectorAll('.tab-pane');
 const deepseekApiKey = document.getElementById('deepseekApiKey');
 const openrouterApiKey = document.getElementById('openrouterApiKey');
+const chatgptApiKey = document.getElementById('chatgptApiKey');
 const saveDeepseekKey = document.getElementById('saveDeepseekKey');
 const saveOpenrouterKey = document.getElementById('saveOpenrouterKey');
+const saveChatgptKey = document.getElementById('saveChatgptKey');
 const deepseekStatus = document.getElementById('deepseekStatus');
 const openrouterStatus = document.getElementById('openrouterStatus');
+const chatgptStatus = document.getElementById('chatgptStatus');
 const defaultProviderRadios = document.getElementsByName('defaultProvider');
 const defaultModel = document.getElementById('defaultModel');
 const defaultTargetLanguage = document.getElementById('defaultTargetLanguage');
@@ -23,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const settings = await browserAPI.storage.local.get([
         'deepseekApiKey',
         'openrouterApiKey',
+        'chatgptApiKey',
         'defaultProvider',
         'defaultModel',
         'defaultTargetLanguage'
@@ -34,6 +38,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (settings.openrouterApiKey) {
         openrouterApiKey.value = settings.openrouterApiKey;
+    }
+    if (settings.chatgptApiKey) {
+        chatgptApiKey.value = settings.chatgptApiKey;
     }
 
     // Устанавливаем провайдера по умолчанию
@@ -109,6 +116,24 @@ saveOpenrouterKey.addEventListener('click', async () => {
     } catch (error) {
         openrouterStatus.textContent = 'Ошибка при сохранении ключа';
         openrouterStatus.className = 'status error';
+    }
+});
+
+saveChatgptKey.addEventListener('click', async () => {
+    const key = chatgptApiKey.value.trim();
+    if (!key) {
+        chatgptStatus.textContent = 'Введите API ключ';
+        chatgptStatus.className = 'status error';
+        return;
+    }
+
+    try {
+        await browserAPI.storage.local.set({ chatgptApiKey: key });
+        chatgptStatus.textContent = 'API ключ сохранен';
+        chatgptStatus.className = 'status success';
+    } catch (error) {
+        chatgptStatus.textContent = 'Ошибка при сохранении ключа';
+        chatgptStatus.className = 'status error';
     }
 });
 

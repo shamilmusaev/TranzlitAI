@@ -11,10 +11,22 @@
   ],
   "host_permissions": [
     "https://api.deepseek.com/*",
-    "https://openrouter.ai/*"
+    "https://openrouter.ai/*",
+    "https://api.openai.com/*"
   ],
   "web_accessible_resources": [{
-    "resources": ["icons/Tranzlit_icon.png"],
+    "resources": [
+      "icons/Tranzlit_icon.png", 
+      "icons/drag-icon.svg",
+      "icons/copy-icon-white.svg",
+      "icons/close-icon-white.svg",
+      "icons/paste-icon.svg",
+      "icons/check-icon.svg",
+      "icons/pin-icon.svg",
+      "icons/pinned-icon.svg",
+      "icons/expand-icon.svg",
+      "icons/collapse-icon.svg"
+    ],
     "matches": ["<all_urls>"]
   }],
   "background": {
@@ -30,10 +42,10 @@
   "action": {
     "default_popup": "html/popup.html",
     "default_icon": {
-      "32": "icons/Tranzlit_icon.png",
-      "64": "icons/Tranzlit_icon.png",
-      "128": "icons/Tranzlit_icon.png",
-      "256": "icons/Tranzlit_icon.png"
+      "16": "icons/Tranzlit_icon.png",
+      "32": "icons/Tranzlit_icon.png", 
+      "48": "icons/Tranzlit_icon.png",
+      "128": "icons/Tranzlit_icon.png"
     }
   },
   "options_ui": {
@@ -41,9 +53,8 @@
     "open_in_tab": true
   },
   "icons": {
-    "32": "icons/Tranzlit_icon.png",
-    "64": "icons/Tranzlit_icon.png",
-    "128": "icons/Tranzlit_icon.png",
-    "256": "icons/Tranzlit_icon.png"
+    "16": "icons/Tranzlit_icon.png",
+    "48": "icons/Tranzlit_icon.png", 
+    "128": "icons/Tranzlit_icon.png"
   }
 } 

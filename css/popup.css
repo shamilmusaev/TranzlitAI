@@ -1,34 +1,76 @@
 body {
-    width: 375px; /* Ширина макета */
+    width: 400px;
+    height: auto; /* Автоматическая высота */
+    min-height: 580px; /* Уменьшаем высоту чтобы избежать скролла */
+    max-height: none; /* Убираем ограничение для правильной адаптивности */
+    min-width: 350px; /* Минимальная ширина */
+    max-width: 600px; /* Максимальная ширина */
     margin: 0;
-    padding: 15px; /* Уменьшаем общие отступы */
-    font-family: 'Inter', sans-serif; /* Предполагаемый шрифт, если есть - указать */
-    background-color: #2C2C3A; /* Темный фон */
-    color: #FFFFFF; /* Белый текст по умолчанию */
+    padding: 10px;
+    font-family: 'Inter', sans-serif;
+    color: #FFFFFF;
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-sizing: border-box;
+    outline: none;
+    overflow: visible; /* Разрешаем естественное расширение */
+    resize: horizontal; /* Разрешаем изменение размера по горизонтали */
+    /* Неоновый градиентный border с box-shadow эффектом */
+    background: #2C2C3A;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 
+        0 0 0 2px #6B73FF,
+        0 0 0 4px #C76BFF,
+        0 0 10px rgba(107, 115, 255, 0.3),
+        0 0 20px rgba(199, 107, 255, 0.2);
+    transition: all 0.3s ease; /* Плавная анимация для всех изменений */
+    position: relative;
+}
+
+/* Курсор resize при наведении на правый край */
+body::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    cursor: col-resize;
+    z-index: 1000;
 }
 
 .container {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 12px; /* Уменьшаем отступы между основными блоками */
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+    border: none;
+    outline: none;
+    overflow: visible;
+    height: auto; /* Динамическая высота контейнера */
 }
 
 .header {
     display: flex;
-    justify-content: space-between; /* Лого слева, кнопка настроек справа */
-    align-items: center;
+    justify-content: space-between;
+    align-items: center; /* Выравниваем по центру */
     width: 100%;
-    margin-bottom: 5px; /* Уменьшаем отступ под заголовком */
+    margin-bottom: 8px;
+    height: 60px; /* Фиксированная высота header */
+    position: relative;
 }
 
 .logo {
-    height: 120px; /* Значительно увеличиваем высоту логотипа */
-    width: auto; /* Автоматическая ширина для сохранения пропорций */
-    margin: 0; /* Убираем вертикальные отступы у самого лого, чтобы header не растягивался ими */
+    height: 120px; /* Сохраняем размер логотипа */
+    width: auto;
+    margin: 0;
+    position: absolute; /* Абсолютное позиционирование */
+    top: -30px; /* Смещаем вверх чтобы выходил за пределы header */
+    left: 0;
 }
 
 .settings-button {
@@ -36,11 +78,16 @@ body {
     border: none;
     cursor: pointer;
     padding: 5px;
+    position: absolute;
+    top: 50%; /* Центрируем по вертикали */
+    right: 0;
+    transform: translateY(-50%); /* Точное выравнивание по центру */
+    z-index: 10;
 }
 
 .settings-button img {
-    width: 24px; /* Размер иконки настроек */
-    height: 24px;
+    width: 20px; /* Уменьшаем размер иконки настроек */
+    height: 20px;
 }
 
 .translation-container {
@@ -57,16 +104,160 @@ body {
 
 textarea {
     width: 100%;
-    min-height: 100px; /* Уменьшаем минимальную высоту текстовых полей */
+    min-height: 120px; /* Увеличиваем высоту как на картинке */
+    max-height: 180px; /* Увеличиваем максимальную высоту */
     padding: 10px;
-    border: 1px solid #4A4A5A; /* Цвет рамки */
-    border-radius: 8px; /* Скругление углов */
-    background-color: #3B3B4D; /* Фон текстовых полей */
-    color: #FFFFFF; /* Цвет текста */
+    border: 1px solid #4A4A5A;
+    border-radius: 8px;
+    background-color: #3B3B4D;
+    color: #FFFFFF;
     font-family: inherit;
     resize: vertical;
-    box-sizing: border-box; /* Чтобы padding не увеличивал общую ширину */
-    font-size: 14px; /* Немного уменьшим шрифт в текстовых полях */
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+/* Для textarea перевода добавляем правый отступ чтобы текст не перекрывался кнопкой */
+#translatedText {
+    padding-right: 45px; /* Дополнительный отступ справа для кнопки копирования */
+    min-height: 100px; /* Увеличиваем высоту для удобства чтения */
+    max-height: 150px; /* Увеличиваем максимальную высоту */
+    color: #FFFFFF !important; /* Принудительно белый цвет */
+}
+
+/* Поддержка HTML форматирования в textarea результатов */
+#translatedText[data-html="true"] {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+    color: #FFFFFF !important; /* Принудительно белый цвет для HTML */
+}
+
+/* HTML форматирование для textarea результатов */
+#translatedText *,
+#translatedText b,
+#translatedText strong {
+    color: #FFFFFF !important; /* Принудительно белый цвет для всех элементов */
+}
+
+#translatedText b,
+#translatedText strong {
+    font-weight: bold; /* Жирный только для специальных тегов */
+}
+
+#translatedText i,
+#translatedText em {
+    font-style: italic;
+    color: #FFFFFF !important;
+}
+
+#translatedText u {
+    text-decoration: underline;
+    color: #FFFFFF !important;
+}
+
+#translatedText h1,
+#translatedText h2,
+#translatedText h3,
+#translatedText h4,
+#translatedText h5,
+#translatedText h6 {
+    font-weight: bold; /* Жирный только для заголовков */
+    margin: 0.5em 0;
+    display: block;
+    color: #FFFFFF !important;
+}
+
+#translatedText h1 { font-size: 1.2em; }
+#translatedText h2 { font-size: 1.15em; }
+#translatedText h3 { font-size: 1.1em; }
+#translatedText h4 { font-size: 1.05em; }
+#translatedText h5 { font-size: 1.02em; }
+#translatedText h6 { font-size: 1em; }
+
+#translatedText p {
+    margin: 0.3em 0;
+    display: block;
+    color: #FFFFFF !important;
+}
+
+#translatedText ul,
+#translatedText ol {
+    margin: 0.3em 0;
+    padding-left: 1.2em;
+    display: block;
+    color: #FFFFFF !important;
+}
+
+#translatedText li {
+    margin: 0.1em 0;
+    display: list-item;
+    color: #FFFFFF !important;
+}
+
+#translatedText br {
+    line-height: 1.4;
+    display: block;
+}
+
+#translatedText code {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+    color: #FFFFFF !important;
+}
+
+#translatedText pre {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.4em;
+    border-radius: 4px;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 0.3em 0;
+    display: block;
+    color: #FFFFFF !important;
+}
+
+#translatedText a {
+    color: #6B73FF !important;
+    text-decoration: underline;
+}
+
+#translatedText a:hover {
+    color: #C76BFF !important;
+}
+
+/* Контейнер для поля ввода с кнопкой paste */
+.input-container {
+    position: relative;
+    margin: 0;
+}
+
+.paste-button {
+    position: absolute;
+    top: 15px;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.paste-button img {
+    width: 20px;
+    height: 20px;
+    transition: opacity 0.3s ease;
+}
+
+.paste-button:hover img {
+    opacity: 0.7;
 }
 
 textarea::placeholder {
@@ -121,17 +312,20 @@ textarea:focus,
 
 .output-container {
     position: relative;
-    margin-bottom: 5px; /* Добавляем небольшой отступ снизу */
+    margin: 0; /* Убираем отступы */
 }
 
 .copy-button {
     position: absolute;
-    top: 12px; /* Отступ кнопки копирования */
-    right: 12px; /* Отступ кнопки копирования */
+    top: 15px;
+    right: 12px;
     background: none;
     border: none;
     cursor: pointer;
     padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .copy-button img {
@@ -143,8 +337,8 @@ textarea:focus,
     display: flex;
     width: 100%;
     align-items: center;
-    gap: 8px; /* Уменьшаем отступ между элементами */
-    margin: 0 0 5px 0; /* Убираем верхний отступ, уменьшаем нижний */
+    gap: 6px; /* Еще больше уменьшаем отступ */
+    margin: 0; /* Убираем все отступы */
 }
 
 .language-select-wrapper {
@@ -207,8 +401,8 @@ textarea:focus,
 
 .provider-selector {
     display: flex;
-    gap: 8px; /* Уменьшаем отступ */
-    margin-bottom: 5px; /* Добавляем небольшой отступ снизу */
+    gap: 6px; /* Еще больше уменьшаем отступ */
+    margin: 0; /* Убираем отступы */
 }
 
 .provider-button {
@@ -231,33 +425,146 @@ textarea:focus,
 }
 
 .translate-button {
-    padding: 12px; /* Уменьшаем паддинг */
+    padding: 10px; /* Еще больше уменьшаем паддинг */
     border: none;
     border-radius: 8px;
-    background: linear-gradient(90deg, #6B73FF 0%, #C76BFF 100%); /* Градиент */
+    background: linear-gradient(90deg, #6B73FF 0%, #C76BFF 100%);
     color: #FFFFFF;
     font-family: inherit;
-    font-size: 15px; /* Уменьшаем шрифт */
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
     text-align: center;
-    width: 100%; /* На всю ширину */
+    width: 100%;
     box-sizing: border-box;
-    margin-bottom: 5px; /* Добавляем небольшой отступ снизу */
+    margin: 0; /* Убираем отступы */
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.translate-button:hover {
+    box-shadow: 0 0 20px rgba(107, 115, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.translate-button.loading {
+    background: linear-gradient(45deg, #6B73FF, #C76BFF, #6B73FF, #C76BFF);
+    background-size: 300% 300%;
+    animation: neonGlow 1.5s ease-in-out infinite, gradientShift 2s ease-in-out infinite;
+    box-shadow: 
+        0 0 10px rgba(107, 115, 255, 0.6),
+        0 0 20px rgba(199, 107, 255, 0.4),
+        0 0 30px rgba(107, 115, 255, 0.3),
+        inset 0 0 10px rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+}
+
+.translate-button.loading::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes neonGlow {
+    0%, 100% {
+        box-shadow: 
+            0 0 5px rgba(107, 115, 255, 0.4),
+            0 0 10px rgba(199, 107, 255, 0.3),
+            0 0 15px rgba(107, 115, 255, 0.2);
+    }
+    50% {
+        box-shadow: 
+            0 0 15px rgba(107, 115, 255, 0.8),
+            0 0 30px rgba(199, 107, 255, 0.6),
+            0 0 45px rgba(107, 115, 255, 0.4);
+    }
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+}
+
+/* Область для сообщений об ошибках */
+.message-area {
+    background-color: #3B3B4D;
+    border: 1px solid #6B73FF;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 0 0 8px 0; /* Убираем верхний отступ */
+    text-align: center;
+    font-size: 12px;
+    color: #C76BFF;
+    box-shadow: 0 0 10px rgba(107, 115, 255, 0.2);
+    transition: all 0.3s ease;
+    word-wrap: break-word; /* Перенос длинных слов */
+    max-width: 100%;
+}
+
+.message-area.error {
+    border-color: #FF6B6B;
+    color: #FF6B6B;
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.2);
+}
+
+.message-area.success {
+    border-color: #6BFF73;
+    color: #6BFF73;
+    box-shadow: 0 0 10px rgba(107, 255, 115, 0.2);
 }
 
 footer {
     text-align: center;
-    font-size: 11px; /* Уменьшаем шрифт */
+    font-size: 11px;
     color: #8A8A9A;
-    padding-top: 8px; /* Небольшой отступ сверху */
-    border-top: 1px solid #4A4A5A; /* Разделитель */
-    margin-top: 5px; /* Уменьшаем отступ */
+    padding: 8px 0 12px 0;
+    border-top: 1px solid #4A4A5A;
+    margin-top: auto;
+    width: 100%;
+    background-color: #2C2C3A;
+    flex-shrink: 0; /* Не позволяем footer сжиматься */
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.footer-dev {
+    font-size: 10px;
+    color: #6A6A7A;
 }
 
 #openrouterModelContainer {
-    margin-top: 5px; /* Уменьшаем отступ */
-    margin-bottom: 5px; /* Добавляем отступ снизу */
+    margin: 0; /* Убираем отступы */
     position: relative;
 }
 
@@ -394,30 +701,7 @@ footer {
     color: #FF6B6B; /* Цвет крестика при наведении (красный) */
 }
 
-/* Обновляем стили для индикатора загрузки, если он используется в контексте OpenRouter или глобально */
-.loading-indicator {
-    display: none; /* По умолчанию скрыт, управляется JS */
-    align-items: center;
-    justify-content: center; /* Центрируем, если он один */
-    gap: 8px;
-    color: #B0B0C0; /* Цвет текста индикатора загрузки */
-    font-size: 14px;
-    padding: 10px 0; /* Отступы для индикатора */
-}
 
-.spinner {
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255, 255, 255, 0.2); /* Светлый след спиннера */
-    border-top: 3px solid #6B73FF; /* Активный цвет спиннера (из градиента кнопки) */
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
 
 /* Стили для модального окна настроек */
 .modal {
@@ -536,4 +820,176 @@ footer {
     font-weight: bold;
     cursor: pointer;
     text-align: center;
+}
+
+/* Стили для контейнера ChatGPT и селектора модели */
+#chatgptContainer {
+    margin: 0; /* Убираем отступы */
+    position: relative;
+}
+
+.chatgpt-model-select {
+    width: 100%;
+    padding: 10px 30px 10px 12px; /* Отступы как у других селектов/инпутов */
+    border: 1px solid #4A4A5A;
+    border-radius: 8px;
+    background-color: #3B3B4D;
+    color: #FFFFFF;
+    font-family: inherit;
+    appearance: none; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    height: 40px; /* Высота как у других селектов/инпутов */
+    font-size: 14px; /* Шрифт как у других селектов/инпутов */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27292.4%27%20height%3D%27292.4%27%3E%3Cpath%20fill%3D%27%238A8A9A%27%20d%3D%27M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%27%2F%3E%3C%2Fsvg%3E"); /* Кастомная стрелка */
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: .65em auto; /* Размер стрелки */
+}
+
+.chatgpt-model-select:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 1px #6B73FF, 0 0 0 1px #C76BFF;
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-image: linear-gradient(#3B3B4D, #3B3B4D), 
+                      linear-gradient(90deg, #6B73FF 0%, #C76BFF 100%),
+                      url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27292.4%27%20height%3D%27292.4%27%3E%3Cpath%20fill%3D%27%23FFFFFF%27%20d%3D%27M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%27%2F%3E%3C%2Fsvg%3E"); /* Белая стрелка на фокусе с градиентом */
+}
+
+/* Стили для табов в настройках */
+.settings-tabs {
+    display: flex;
+    border-bottom: 1px solid #4A4A5A;
+    margin-bottom: 15px;
+    gap: 5px;
+}
+
+.tab-button {
+    padding: 8px 15px;
+    background: none;
+    border: none;
+    color: #8A8A9A;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.tab-button.active {
+    color: #FFFFFF;
+    border-bottom: 2px solid #C76BFF;
+}
+
+.tab-button:hover {
+    color: #FFFFFF;
+}
+
+.settings-section {
+    display: none;
+    padding: 5px 0;
+}
+
+.settings-section.active {
+    display: block;
+}
+
+/* Стили для вкладки логов */
+.logs-container {
+    border: 1px solid #4A4A5A;
+    border-radius: 8px;
+    background-color: #3B3B4D;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.logs-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px;
+    border-bottom: 1px solid #4A4A5A;
+    gap: 5px;
+}
+
+.clear-logs-button, .refresh-logs-button {
+    padding: 5px 10px;
+    background-color: #4A4A5A;
+    border: none;
+    border-radius: 4px;
+    color: #FFFFFF;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.clear-logs-button:hover, .refresh-logs-button:hover {
+    background-color: #5D5D6F;
+}
+
+.logs-content {
+    padding: 10px;
+}
+
+.loading-logs, .no-logs, .logs-error {
+    text-align: center;
+    color: #8A8A9A;
+    padding: 15px;
+}
+
+.logs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.log-entry {
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    background-color: #2C2C3A;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.log-timestamp {
+    color: #8A8A9A;
+    font-size: 10px;
+}
+
+.log-level {
+    font-weight: bold;
+}
+
+.log-level-info .log-level {
+    color: #6B73FF;
+}
+
+.log-level-error .log-level {
+    color: #FF6B6B;
+}
+
+.log-level-warning .log-level {
+    color: #FFB86B;
+}
+
+.log-level-debug .log-level {
+    color: #6BFFB8;
+}
+
+.log-message {
+    color: #FFFFFF;
+}
+
+.log-data {
+    background-color: #232330;
+    padding: 5px;
+    border-radius: 4px;
+    color: #8A8A9A;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 100px;
+    overflow-y: auto;
 } 

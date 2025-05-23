@@ -14,45 +14,66 @@
             </button>
         </div>
 
-        <textarea id="sourceText" placeholder="Введите текст для перевода..."></textarea>
+        <!-- Область для сообщений об ошибках -->
+        <div id="messageArea" class="message-area" style="display: none;">
+            <span id="messageText"></span>
+        </div>
+
+                <div class="input-container">
+                    <textarea id="sourceText" placeholder="Введите текст для перевода..."></textarea>
+                    <button id="pasteButton" class="paste-button" title="Вставить из буфера обмена">
+                        <img src="../icons/paste-icon.svg" alt="Paste">
+                    </button>
+                </div>
 
         <div class="language-controls">
             <div class="language-select-wrapper">
-                <select id="sourceLanguage">
-                    <option value="auto">Автоопределение</option>
-                    <option value="ru">Русский</option>
-                    <option value="en">Английский</option>
-                    <!-- Добавьте другие языки по необходимости -->
-                </select>
+                    <select id="sourceLanguage">
+                        <option value="auto">Автоопределение</option>
+                        <option value="ru">Русский</option>
+                        <option value="en">Английский</option>
+                        <!-- Добавьте другие языки по необходимости -->
+                    </select>
             </div>
             <button id="swapLanguagesButton" class="swap-button" title="Поменять языки">
                 <img src="../icons/swap-icon.svg" alt="Swap Languages">
             </button>
             <div class="language-select-wrapper">
-                <select id="targetLanguage">
-                    <option value="ru">Русский</option>
-                    <option value="en">Английский</option>
-                    <!-- Добавьте другие языки по необходимости -->
-                </select>
+                    <select id="targetLanguage">
+                        <option value="ru">Русский</option>
+                        <option value="en">Английский</option>
+                        <!-- Добавьте другие языки по необходимости -->
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div class="provider-selector">
+                <div class="provider-selector">
             <button id="deepseekButton" class="provider-button active" data-provider="deepseek">DeepSeek</button>
             <button id="openrouterButton" class="provider-button" data-provider="openrouter">OpenRouter</button>
-        </div>
+            <button id="chatgptButton" class="provider-button" data-provider="chatgpt">ChatGPT</button>
+                </div>
         
-        <div id="openrouterModelContainer" style="display: none;">
-             <div class="model-input-container">
-                 <div class="selected-model-display-wrapper">
-                     <input type="text" id="openrouterModelInput" placeholder="Введите или выберите модель...">
-                     <span class="dropdown-arrow" id="openrouterModelDropdownArrow">▼</span>
-                 </div>
-                 <div id="openrouterModelDropdown" class="model-dropdown" style="display: none;">
-                     <!-- Модели будут добавляться сюда через JavaScript -->
-                 </div>
-             </div>
-         </div>
+                <div id="openrouterModelContainer" style="display: none;">
+                    <div class="model-input-container">
+                        <div class="selected-model-display-wrapper">
+                            <input type="text" id="openrouterModelInput" placeholder="Введите или выберите модель...">
+                            <span class="dropdown-arrow" id="openrouterModelDropdownArrow">▼</span>
+                        </div>
+                        <div id="openrouterModelDropdown" class="model-dropdown" style="display: none;">
+                            <!-- Модели будут добавляться сюда через JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+        <div id="chatgptContainer" style="display: none;">
+            <div class="model-input-container">
+                <div class="selected-model-display-wrapper">
+                    <select id="chatgptModelSelect" class="chatgpt-model-select">
+                        <!-- Модели будут добавлены динамически через JavaScript -->
+                    </select>
+                </div>
+            </div>
+        </div>
 
         <button id="translateButton" class="translate-button">Перевести</button>
 
@@ -64,7 +85,10 @@
         </div>
 
         <footer>
-            © 2024 TranzlitAI
+            <div class="footer-content">
+                © 2025 TranzlitAI
+                <div class="footer-dev">Developed by Sam Maxwell</div>
+            </div>
         </footer>
     </div>
     <script src="../js/popup.js"></script>
