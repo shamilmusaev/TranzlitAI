@@ -822,6 +822,25 @@ footer {
     text-align: center;
 }
 
+.reset-welcome-button {
+    padding: 8px 16px;
+    border: 1px solid #4A4A5A;
+    border-radius: 6px;
+    background: transparent;
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 5px;
+}
+
+.reset-welcome-button:hover {
+    background: linear-gradient(90deg, #6B73FF 0%, #C76BFF 100%);
+    border-color: transparent;
+    box-shadow: 0 2px 8px rgba(107, 115, 255, 0.3);
+}
+
 /* Стили для контейнера ChatGPT и селектора модели */
 #chatgptContainer {
     margin: 0; /* Убираем отступы */

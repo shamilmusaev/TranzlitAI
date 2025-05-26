@@ -54,6 +54,15 @@ function renderChatGPTModels() {
 
 // Загрузка настроек и моделей при открытии popup
 document.addEventListener('DOMContentLoaded', async () => {
+    // Проверяем, нужно ли показать окно приветствия
+    const welcomeData = await browserAPI.storage.local.get(['welcomeCompleted']);
+    
+    if (!welcomeData.welcomeCompleted) {
+        // Если приветствие не было показано, перенаправляем на страницу приветствия
+        window.location.href = 'welcome.html';
+        return;
+    }
+    
     // Рендерим модели ChatGPT
     renderChatGPTModels();
     
@@ -209,6 +218,10 @@ settingsButton.addEventListener('click', () => {
                                 <option value="en">Английский</option>
                                 <!-- Другие языки -->
                             </select>
+                        </div>
+                        <div class="settings-option">
+                            <label>Интерфейс:</label>
+                            <button id="resetWelcomeButton" class="reset-welcome-button">Показать приветствие заново</button>
                         </div>
                     </div>
                     
@@ -396,6 +409,20 @@ settingsButton.addEventListener('click', () => {
         const refreshLogsButton = settingsModal.querySelector('#refreshLogsButton');
         refreshLogsButton.addEventListener('click', () => {
             loadLogs();
+        });
+        
+        // Обработчик для кнопки сброса приветствия
+        const resetWelcomeButton = settingsModal.querySelector('#resetWelcomeButton');
+        resetWelcomeButton.addEventListener('click', async () => {
+            if (confirm('Вы хотите снова показать окно приветствия при следующем открытии расширения?')) {
+                try {
+                    await browserAPI.storage.local.set({ welcomeCompleted: false });
+                    alert('Окно приветствия будет показано при следующем открытии расширения');
+                } catch (error) {
+                    console.error('Ошибка сброса приветствия:', error);
+                    alert(`Ошибка: ${error.message}`);
+                }
+            }
         });
     } else {
         // Модальное окно уже существует, просто показываем его
